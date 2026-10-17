@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   motion,
+  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -10,6 +11,7 @@ import {
   useTransform,
 } from "motion/react";
 import { useRef, useState } from "react";
+import { useMedia } from "@/lib/use-media";
 import { LiquidGlass } from "@/components/liquid-glass";
 import { LocalTime } from "@/components/local-time";
 import { Magnetic } from "@/components/magnetic";
@@ -40,30 +42,42 @@ export function Hero() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const ready = useIntroDone();
+  // Desktop pins the hero for one screen and morphs while pinned. Phones vary too
+  // much in height to fit both cards in one screen, so there the hero scrolls
+  // normally and the morph follows the portrait card through the viewport.
+  const wide = useMedia("(min-width: 1024px)");
+  const portraitRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.4 });
+  const { scrollYProgress: cardProgress } = useScroll({ target: portraitRef, offset: ["start end", "end start"] });
+  const cardSmooth = useSpring(cardProgress, { stiffness: 120, damping: 24, mass: 0.4 });
 
-  const morph = useTransform(smooth, [0.1, 0.65], [0, 1], { clamp: true });
+  const morphDesktop = useTransform(smooth, [0.1, 0.65], [0, 1], { clamp: true });
+  const morphMobile = useTransform(cardSmooth, [0.42, 0.72], [0, 1], { clamp: true });
+  const morph = useMotionValue(0);
+  useMotionValueEvent(morphDesktop, "change", (v) => wide && morph.set(v));
+  useMotionValueEvent(morphMobile, "change", (v) => !wide && morph.set(v));
   const [side, setSide] = useState(0);
   useMotionValueEvent(morph, "change", (v) => setSide(v > 0.5 ? 1 : 0));
 
   // Parallax layers
   const k = reduce ? 0 : 1;
+  const kd = reduce || !wide ? 0 : 1; // desktop-only pin effects
   const nameX = useTransform(smooth, [0, 1], ["0%", `${-4 * k}%`]);
   // The figure sinks into the card as you scroll, so its cut-off bottom edge stays hidden.
   const personY = useTransform(smooth, [0, 1], ["0%", `${7 * k}%`]);
   const personScale = useTransform(smooth, [0, 1], [1, 1 + 0.04 * k]);
   const discY = useTransform(smooth, [0, 1], ["0%", `${10 * k}%`]);
   const tagY = useTransform(smooth, [0, 1], ["0px", `${-40 * k}px`]);
-  const exit = useTransform(smooth, [0.85, 1], [1, 0.94]);
-  const exitOpacity = useTransform(smooth, [0.85, 1], [1, 0.4]);
+  const exit = useTransform(smooth, [0.85, 1], [1, 1 - 0.06 * kd]);
+  const exitOpacity = useTransform(smooth, [0.85, 1], [1, 1 - 0.6 * kd]);
   const progressWidth = useTransform(morph, (v) => `${v * 100}%`);
 
   return (
-    <section ref={ref} id="top" className="relative h-[220svh] lg:h-[240vh]" aria-label="Introduction">
+    <section ref={ref} id="top" className="relative lg:h-[240vh]" aria-label="Introduction">
       <motion.div
         style={{ scale: exit, opacity: exitOpacity }}
-        className="sticky top-0 mx-auto grid h-svh max-w-310 grid-rows-[auto_minmax(0,1fr)] gap-3 px-3 pb-3 pt-22 sm:px-6 sm:pt-24 lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:gap-4 lg:pb-6"
+        className="mx-auto grid max-w-310 gap-3 px-3 pb-3 pt-22 sm:px-6 sm:pt-24 lg:sticky lg:top-0 lg:h-svh lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:gap-4 lg:pb-6"
       >
         {/* Intro */}
         <motion.div
@@ -104,7 +118,7 @@ export function Hero() {
               className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mt-5"
             >
               <span className="font-display text-[clamp(1.35rem,2.4vw,2rem)] leading-none">Full-stack Developer</span>
-              <span className="text-[0.95rem] text-ink-soft sm:text-base">· Founder of Webkeun.id</span>
+              <span className="text-[0.95rem] text-ink-soft sm:text-base"><span className="hidden sm:inline">· </span>Founder of Webkeun.id</span>
             </motion.p>
 
             <div className="mt-4 grid gap-4 sm:mt-8 sm:gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -126,7 +140,8 @@ export function Hero() {
           initial={reduce ? false : { opacity: 0 }}
           animate={ready ? { opacity: 1 } : undefined}
           transition={{ duration: 0.4, ease }}
-          className="relative min-h-0 lg:col-span-5 lg:row-span-3"
+          ref={portraitRef}
+          className="relative aspect-4/5 max-h-[82svh] w-full sm:aspect-4/3 lg:aspect-auto lg:max-h-none lg:min-h-0 lg:col-span-5 lg:row-span-3"
         >
           <div
             data-intro-target
@@ -239,7 +254,7 @@ function Actions() {
       <Magnetic>
         <Link
           href="/#work"
-          className="group inline-flex h-12 items-center gap-3 rounded-full bg-ink pl-5 pr-1.5 text-[0.95rem] font-medium text-bg"
+          className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-ink pl-4 pr-1.5 text-[0.9rem] font-medium text-bg sm:gap-3 sm:pl-5 sm:text-[0.95rem]"
         >
           Selected work
           <span className="grid size-9 place-items-center rounded-full bg-accent text-on-accent transition-transform duration-500 ease-out-expo group-hover:rotate-90">
@@ -252,7 +267,7 @@ function Actions() {
       <a
         href={site.cv}
         download
-        className="inline-flex h-12 items-center rounded-full px-5 text-[0.95rem] font-medium ring-1 ring-line transition-colors hover:bg-surface-2"
+        className="inline-flex h-12 items-center rounded-full px-4 text-[0.9rem] font-medium ring-1 ring-line transition-colors hover:bg-surface-2 sm:px-5 sm:text-[0.95rem]"
       >
         Download CV
       </a>
