@@ -57,7 +57,7 @@ const personJsonLd = {
 
 // Runs before first paint so the saved / system theme never flashes, and so a
 // loader that already played this session never shows for a frame.
-const themeScript = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.setAttribute("data-theme",t)}catch(e){}try{if(sessionStorage.getItem("intro-seen")==="1")d.classList.add("intro-seen")}catch(e){}})()`;
+const themeScript = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.setAttribute("data-theme",t)}catch(e){}try{if(sessionStorage.getItem("intro-seen")==="1"&&!/[?&]intro\b/.test(location.search))d.classList.add("intro-seen");else if(!matchMedia("(prefers-reduced-motion: reduce)").matches)d.classList.add("intro-hold")}catch(e){}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -76,7 +76,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         <noscript>
-          <style>{`#intro-loader{display:none}`}</style>
+          <style>{`#intro-loader{display:none}html.intro-hold main,html.intro-hold header{transform:none!important;filter:none!important;opacity:1!important}`}</style>
         </noscript>
         <SmoothScroll>
           <Backdrop />

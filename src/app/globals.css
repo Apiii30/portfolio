@@ -105,6 +105,17 @@ body {
 .intro-lock body {
   overflow: hidden;
 }
+/* While the loader plays, the page waits behind it: zoomed out and soft. */
+.intro-hold main {
+  transform: scale(0.94);
+  transform-origin: 50% 30vh;
+  filter: blur(10px);
+  opacity: 0.4;
+}
+.intro-hold header {
+  transform: translateY(-120%);
+  opacity: 0;
+}
 
 /* Lenis */
 html.lenis,
