@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
+import { motion, useReducedMotion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Reveal, SplitHeading } from "@/components/reveal";
 import { WorkCard } from "@/components/work/work-card";
@@ -105,7 +105,7 @@ function EndCard() {
       rel="noreferrer"
       className="group flex h-[min(64svh,600px)] min-h-[470px] w-[min(30vw,400px)] flex-col justify-between rounded-[28px] bg-ink p-10 text-bg transition-transform duration-500 ease-out-expo hover:-translate-y-1"
     >
-      <p className="text-[0.85rem] font-medium opacity-60">More</p>
+      <p className="text-[0.85rem] font-medium opacity-75">More</p>
       <p className="font-display text-5xl leading-[0.95]">
         The rest lives on <span className="text-accent">GitHub</span>
       </p>
@@ -136,7 +136,35 @@ function Progress({ progress, count }: { progress: MotionValue<number>; count: n
         </motion.span>
       </span>
       <span className="tabular-nums">0{count}</span>
+      <ScrollHint progress={progress} />
     </div>
+  );
+}
+
+/** "Keep scrolling" cue: the track moves sideways, which isn't obvious from a vertical scroll. Fades out at the end. */
+function ScrollHint({ progress }: { progress: MotionValue<number> }) {
+  const reduce = useReducedMotion();
+  const opacity = useTransform(progress, [0, 0.85, 0.97], [1, 1, 0]);
+  return (
+    <motion.span
+      style={{ opacity }}
+      className="ml-2 flex items-center gap-2 rounded-full bg-surface px-3.5 py-1.5 font-sans text-[0.8rem] font-medium text-ink-soft ring-1 ring-line"
+    >
+      Keep scrolling
+      <span className="relative flex h-3.5 w-5 items-center overflow-hidden" aria-hidden>
+        <motion.svg
+          viewBox="0 0 16 16"
+          className="size-3.5 text-accent"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          animate={reduce ? undefined : { x: [-4, 6, -4] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <path d="M2 8h12M9 3l5 5-5 5" />
+        </motion.svg>
+      </span>
+    </motion.span>
   );
 }
 

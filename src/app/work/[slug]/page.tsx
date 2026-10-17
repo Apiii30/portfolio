@@ -5,7 +5,7 @@ import { CurtainLink } from "@/components/curtain";
 import { CaseCover, ParallaxShot } from "@/components/case/case-cover";
 import { Footer } from "@/components/contact/contact-section";
 import { Nav } from "@/components/nav";
-import { Reveal, SplitHeading } from "@/components/reveal";
+import { Reveal, ScrollSection, SplitHeading } from "@/components/reveal";
 import { getProject, projects, type Shot } from "@/lib/projects";
 import { site } from "@/lib/site";
 
@@ -115,6 +115,23 @@ async function CaseStudy({ params }: { params: PageProps<"/work/[slug]">["params
             ))}
           </ul>
 
+          {project.outcome && (
+            <ScrollSection>
+            <section className="mt-16 rounded-[28px] bg-accent-fill p-6 text-white sm:p-10">
+              <Reveal>
+                <p className="text-[0.85rem] font-medium text-white/85">{project.outcome.title}</p>
+              </Reveal>
+              <ul className="mt-6 grid gap-4 md:grid-cols-3">
+                {project.outcome.points.map((pt, k) => (
+                  <Reveal as="li" key={pt} delay={k * 0.06} className="rounded-2xl bg-white/12 p-5 leading-relaxed ring-1 ring-white/15">
+                    {pt}
+                  </Reveal>
+                ))}
+              </ul>
+            </section>
+            </ScrollSection>
+          )}
+
           <section className="mt-24 grid gap-6 lg:grid-cols-12">
             <Reveal className="lg:col-span-3">
               <p className="text-[0.85rem] font-medium text-accent">The problem</p>
@@ -125,7 +142,8 @@ async function CaseStudy({ params }: { params: PageProps<"/work/[slug]">["params
           </section>
 
           {project.sections.map((s, k) => (
-            <section key={s.title} className="mt-28 grid gap-6 lg:grid-cols-12">
+            <ScrollSection key={s.title}>
+            <section className="mt-28 grid gap-6 lg:grid-cols-12">
               <div className="lg:col-span-3">
                 <Reveal>
                   <p className="text-[0.85rem] font-medium text-ink-faint">
@@ -141,6 +159,7 @@ async function CaseStudy({ params }: { params: PageProps<"/work/[slug]">["params
               </div>
               {s.shots && <Gallery shots={s.shots} />}
             </section>
+            </ScrollSection>
           ))}
 
           <section className="mt-32 border-t border-line pt-12">

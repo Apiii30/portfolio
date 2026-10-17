@@ -54,7 +54,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
-      className="grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-ink/5"
+      className="grid size-11 place-items-center rounded-full text-ink transition-colors hover:bg-ink/5"
     >
       <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6">
         <mask id="moon-mask">

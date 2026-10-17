@@ -9,7 +9,7 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { LiquidGlass } from "@/components/liquid-glass";
 import { LocalTime } from "@/components/local-time";
 import { Magnetic } from "@/components/magnetic";
@@ -20,13 +20,13 @@ import { site } from "@/lib/site";
 
 const sides = [
   {
-    kicker: "Builds it",
+    kicker: "As a developer",
     text: "I take web apps from the database schema to the last hover state. React, Next.js, Express, PostgreSQL.",
     tag: "01 — Developer",
     now: { title: "Full-stack Developer", note: "React · Next.js · Express · PostgreSQL", href: site.github },
   },
   {
-    kicker: "Runs it",
+    kicker: "As a founder",
     text: "Founder of Webkeun.id: digital invitations and business sites for real clients, from first call to launch day.",
     tag: "02 — Founder",
     now: { title: "Founder, Webkeun.id", note: "Invitations & small-business sites", href: site.webkeun },
@@ -58,7 +58,6 @@ export function Hero() {
   const exit = useTransform(smooth, [0.85, 1], [1, 0.94]);
   const exitOpacity = useTransform(smooth, [0.85, 1], [1, 0.4]);
   const progressWidth = useTransform(morph, (v) => `${v * 100}%`);
-  const [portraitRef, cardTop] = useCardTop();
 
   return (
     <section ref={ref} id="top" className="relative h-[220svh] lg:h-[240vh]" aria-label="Introduction">
@@ -84,7 +83,7 @@ export function Hero() {
           </div>
 
           <div>
-            <h1 className="font-display text-[min(13.5vw,6.6svh)] leading-[0.86] sm:text-[min(9.5vw,8.5svh)] lg:text-[min(6.2vw,10svh)]">
+            <h1 className="font-display text-[min(13.5vw,6.6svh)] leading-[0.86] sm:text-[min(9.5vw,8.5svh)] lg:text-[min(5.8vw,8.8svh)]">
               <span className="sr-only">{site.name}</span>
               <motion.span aria-hidden style={{ x: nameX }} className="block">
                 <Letters text="Hafidz" delay={0.15} play={ready} />
@@ -97,8 +96,19 @@ export function Hero() {
               </motion.span>
             </h1>
 
+            {/* The role, stated plainly; the morphing copy below is the colour around it */}
+            <motion.p
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={ready ? { opacity: 1, y: 0 } : undefined}
+              transition={{ duration: 0.8, delay: 0.5, ease }}
+              className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mt-5"
+            >
+              <span className="font-display text-[clamp(1.35rem,2.4vw,2rem)] leading-none">Full-stack Developer</span>
+              <span className="text-[0.95rem] text-ink-soft sm:text-base">· Founder of Webkeun.id</span>
+            </motion.p>
+
             <div className="mt-4 grid gap-4 sm:mt-8 sm:gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
-              <div className="max-w-[44ch]">
+              <div className="max-w-[44ch] lg:[@media(max-height:780px)]:hidden">
                 <p className="text-[0.85rem] font-semibold text-accent">
                   <MorphText variants={sides.map((s) => s.kicker)} active={side} />
                 </p>
@@ -111,9 +121,8 @@ export function Hero() {
           </div>
         </motion.div>
 
-        {/* Portrait: the figure stands on the card and its head breaks out of the top */}
+        {/* Portrait: same height as the intro column, the figure standing on the card's bottom edge */}
         <motion.div
-          ref={portraitRef}
           initial={reduce ? false : { opacity: 0 }}
           animate={ready ? { opacity: 1 } : undefined}
           transition={{ duration: 0.4, ease }}
@@ -121,8 +130,7 @@ export function Hero() {
         >
           <div
             data-intro-target
-            style={{ top: cardTop }}
-            className="absolute inset-x-0 bottom-0 top-[14%] overflow-hidden rounded-[28px] bg-accent"
+            className="absolute inset-0 overflow-hidden rounded-[28px] bg-accent-fill"
           >
             <motion.div
               aria-hidden
@@ -138,14 +146,14 @@ export function Hero() {
           </div>
 
           {/* Clip only the bottom and sides, so the head can rise above the card */}
-          <div className="absolute inset-0 [clip-path:inset(-20%_0_0_0_round_0_0_28px_28px)]">
+          <div className="absolute inset-0 overflow-hidden rounded-[28px]">
             <motion.div
               initial={reduce ? false : { opacity: 0, y: "18%" }}
               animate={ready ? { opacity: 1, y: "0%" } : undefined}
               transition={{ duration: 1.2, delay: 0.55, ease }}
               className="absolute inset-0"
             >
-            <motion.div style={{ y: personY, scale: personScale }} className="absolute inset-x-0 top-0 -bottom-[4%] origin-bottom">
+            <motion.div style={{ y: personY, scale: personScale }} className="absolute inset-x-0 top-[6%] -bottom-[4%] origin-bottom">
               <LiquidPortrait
                 progress={morph}
                 className="h-full w-full"
@@ -223,37 +231,6 @@ export function Hero() {
       </motion.div>
     </section>
   );
-}
-
-/**
- * Where the cobalt card should start so the head always rises a little above
- * it. Mirrors the portrait shader's fit: the figure is contained in 86% of the
- * width and stands on the bottom (canvas is 4% taller than this box).
- */
-function useCardTop() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [top, setTop] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const IMAGE_RATIO = 1024 / 1536;
-    const HAIR_TOP = 117 / 1536; // first opaque row of the cutouts
-    const measure = () => {
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
-      const canvasH = h * 1.04;
-      const imgH = Math.min(canvasH, (w * 0.86) / IMAGE_RATIO);
-      const hair = canvasH - imgH + imgH * HAIR_TOP;
-      setTop(Math.max(h * 0.06, hair + imgH * 0.045));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  return [ref, top] as const;
 }
 
 function Actions() {

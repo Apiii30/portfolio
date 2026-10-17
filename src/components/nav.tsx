@@ -52,7 +52,7 @@ export function Nav() {
             aria-label="Hafidz Asmar Meisanda — home"
           >
             <span
-              className={`grid size-10 place-items-center rounded-full text-[0.8rem] font-semibold transition-colors duration-500 ${onAccent ? "bg-white text-accent" : "bg-ink text-bg"}`}
+              className={`grid size-11 place-items-center rounded-full text-[0.8rem] font-semibold transition-colors duration-500 ${onAccent ? "bg-white text-accent-fill" : "bg-ink text-bg"}`}
             >
               HA
             </span>
@@ -86,10 +86,10 @@ export function Nav() {
                       className={`relative block rounded-full px-3.5 py-2 transition-colors duration-300 ${
                         on
                           ? onAccent
-                            ? "text-accent"
+                            ? "text-accent-fill"
                             : "text-bg"
                           : onAccent
-                            ? "text-white/80 hover:text-white"
+                            ? "text-white/90 hover:text-white"
                             : "text-ink-soft hover:text-ink"
                       }`}
                     >
@@ -112,7 +112,7 @@ export function Nav() {
             <ThemeToggle />
             <button
               type="button"
-              className={`grid size-10 place-items-center rounded-full md:hidden ${onAccent ? "bg-white text-accent" : "bg-ink text-bg"}`}
+              className={`grid size-11 place-items-center rounded-full md:hidden ${onAccent ? "bg-white text-accent-fill" : "bg-ink text-bg"}`}
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               aria-controls="mobile-menu"

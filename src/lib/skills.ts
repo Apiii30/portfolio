@@ -1,4 +1,5 @@
 import {
+  siAndroidstudio,
   siBootstrap,
   siCss,
   siEjs,
@@ -10,6 +11,7 @@ import {
   siHtml5,
   siJavascript,
   siJsonwebtokens,
+  siKotlin,
   siLaravel,
   siMongodb,
   siMysql,
@@ -32,82 +34,92 @@ import {
 
 export type Skill = { name: string; icon?: SimpleIcon };
 
-export type SkillGroup = {
-  id: string;
-  title: string;
-  blurb: string;
-  span: string;
-  skills: readonly Skill[];
-};
-
-export const skillGroups: readonly SkillGroup[] = [
+/** The technologies used most in the main projects, by layer. */
+export const coreStack: readonly { layer: string; skills: readonly Skill[] }[] = [
   {
-    id: "frontend",
-    title: "Front-end",
-    blurb: "Interfaces, layout and motion.",
-    span: "lg:col-span-7",
+    layer: "Frontend",
     skills: [
       { name: "React", icon: siReact },
       { name: "Next.js", icon: siNextdotjs },
       { name: "TypeScript", icon: siTypescript },
-      { name: "JavaScript", icon: siJavascript },
       { name: "Tailwind CSS", icon: siTailwindcss },
-      { name: "Vite", icon: siVite },
-      { name: "HTML5", icon: siHtml5 },
-      { name: "CSS", icon: siCss },
-      { name: "Motion" },
-      { name: "Bootstrap", icon: siBootstrap },
-      { name: "EJS", icon: siEjs },
-      { name: "Responsive design" },
     ],
   },
   {
-    id: "backend",
-    title: "Back-end",
-    blurb: "APIs, auth and server logic.",
-    span: "lg:col-span-5",
+    layer: "Backend",
     skills: [
       { name: "Node.js", icon: siNodedotjs },
       { name: "Express", icon: siExpress },
-      { name: "REST APIs" },
-      { name: "JWT auth", icon: siJsonwebtokens },
-      { name: "PHP", icon: siPhp },
-      { name: "Laravel", icon: siLaravel },
-      { name: "MVC" },
     ],
   },
   {
-    id: "data",
-    title: "Databases",
-    blurb: "Schemas, queries and access rules.",
-    span: "lg:col-span-5",
+    layer: "Data",
     skills: [
       { name: "PostgreSQL", icon: siPostgresql },
-      { name: "Supabase", icon: siSupabase },
       { name: "MySQL", icon: siMysql },
-      { name: "MongoDB", icon: siMongodb },
-      { name: "Firebase", icon: siFirebase },
-      { name: "Sequelize", icon: siSequelize },
+      { name: "Supabase", icon: siSupabase },
+    ],
+  },
+];
+
+/** The base everything sits on, plus the supporting tools that have actually been used. */
+export const foundations: readonly { title: string; skills: readonly Skill[] }[] = [
+  {
+    title: "Web foundations",
+    skills: [
+      { name: "JavaScript", icon: siJavascript },
+      { name: "HTML", icon: siHtml5 },
+      { name: "CSS", icon: siCss },
     ],
   },
   {
-    id: "tools",
-    title: "Tools & design",
-    blurb: "Shipping, testing and the design side.",
-    span: "lg:col-span-7",
+    title: "UI tools & templating",
+    skills: [
+      { name: "Vite", icon: siVite },
+      { name: "Motion" },
+      { name: "Bootstrap", icon: siBootstrap },
+      { name: "EJS", icon: siEjs },
+    ],
+  },
+  {
+    title: "Backend & data",
+    skills: [
+      { name: "REST API design & development" },
+      { name: "JWT authentication", icon: siJsonwebtokens },
+      { name: "Sequelize", icon: siSequelize },
+      { name: "PHP", icon: siPhp },
+      { name: "Laravel", icon: siLaravel },
+      { name: "MongoDB", icon: siMongodb },
+      { name: "Firebase", icon: siFirebase },
+    ],
+  },
+  {
+    title: "Development tools",
     skills: [
       { name: "Git", icon: siGit },
       { name: "GitHub", icon: siGithub },
       { name: "Postman", icon: siPostman },
       { name: "npm", icon: siNpm },
       { name: "Vercel", icon: siVercel },
-      { name: "VS Code" },
-      { name: "Figma", icon: siFigma },
-      { name: "Canva" },
     ],
+  },
+  {
+    title: "Design tools",
+    skills: [{ name: "Figma", icon: siFigma }, { name: "Canva" }],
   },
 ];
 
-export const learning: Skill[] = [{ name: "Python", icon: siPython }, { name: "Backend architecture" }, { name: "API design" }];
-
-export const skillCount = skillGroups.reduce((n, g) => n + g.skills.length, 0);
+/** Ongoing learning, kept apart from what is already applied in projects. */
+export const learning: readonly { title: string; skills: readonly Skill[] }[] = [
+  {
+    title: "Backend",
+    skills: [{ name: "Python", icon: siPython }, { name: "Backend architecture" }],
+  },
+  {
+    title: "Android",
+    skills: [
+      { name: "Kotlin", icon: siKotlin },
+      { name: "Android Studio", icon: siAndroidstudio },
+    ],
+  },
+];

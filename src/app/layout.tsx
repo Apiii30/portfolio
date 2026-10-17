@@ -52,7 +52,7 @@ const personJsonLd = {
   alumniOf: { "@type": "CollegeOrUniversity", name: "Politeknik Praktisi Bandung" },
   worksFor: { "@type": "Organization", name: "Webkeun.id", url: site.webkeun },
   sameAs: [site.github, site.linkedin],
-  knowsAbout: ["React", "Next.js", "TypeScript", "Node.js", "Express", "PostgreSQL", "Supabase"],
+  knowsAbout: ["React", "Next.js", "TypeScript", "Node.js", "Express", "PostgreSQL", "MySQL", "Supabase"],
 };
 
 // Runs before first paint so the saved / system theme never flashes, and so a

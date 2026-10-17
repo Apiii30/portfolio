@@ -38,7 +38,7 @@ export default async function Image() {
             }}
           >
             <div style={{ width: 10, height: 10, borderRadius: 999, background: og.accent }} />
-            Open to internships & freelance
+            {site.status}
           </div>
           <div style={{ display: "flex", flexDirection: "column", fontWeight: 600, fontSize: 104, lineHeight: 0.9, letterSpacing: -5 }}>
             <span style={{ color: og.ink }}>Hafidz Asmar</span>

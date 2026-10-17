@@ -18,6 +18,8 @@ export type Project = {
   hook: string;
   stack: readonly string[];
   facts: readonly { value: string; label: string }[];
+  /** What came of it — only things that can be shown or verified. */
+  outcome?: { title: string; points: readonly string[] };
   live?: { label: string; href: string };
   status?: string;
   cover: Shot;
@@ -112,6 +114,14 @@ export const projects: readonly Project[] = [
       { value: "6", label: "admin modules, from events to user management" },
     ],
     status: "Not launched yet: screens are from the development build, with demo data.",
+    outcome: {
+      title: "Where it ended up",
+      points: [
+        "The whole volunteer journey works end to end on the development build: browse, eligibility check, payment, admin approval, certificate.",
+        "Payment review moved out of chat screenshots and into one admin table with approve, reject, bulk approve and export.",
+        "Recognised with a Certificate of Appreciation from Ocean Young Guards at the end of the internship (No. 03/CA/OYG/VIII/26).",
+      ],
+    },
     cover: {
       src: "/work/oyg/landing-desktop.webp",
       alt: "Ocean Young Guards landing page: volunteers standing in the sea holding flags",

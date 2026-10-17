@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
 import { useRef } from "react";
-import { Reveal, SplitHeading } from "@/components/reveal";
+import { Parallax, Reveal, SplitHeading } from "@/components/reveal";
 import { education, experience } from "@/lib/content";
 
 export function ExperienceSection() {
@@ -60,6 +60,7 @@ export function ExperienceSection() {
             <span aria-hidden className="absolute left-0 top-9 grid size-4 place-items-center rounded-full bg-bg ring-2 ring-accent">
               <span className="size-1.5 rounded-full bg-accent" />
             </span>
+            <Parallax speed={0.05 + i * 0.04}>
             <Reveal delay={i * 0.06} x={60} y={20} className="rounded-[28px] bg-surface p-6 ring-1 ring-line sm:p-8">
               <p className="text-[0.85rem] font-medium text-ink-faint">
                 {item.period} <span className="mx-2">·</span> {item.type}
@@ -92,6 +93,7 @@ export function ExperienceSection() {
                 </a>
               )}
             </Reveal>
+            </Parallax>
           </li>
         ))}
       </ol>

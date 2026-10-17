@@ -13,10 +13,13 @@
   --surface-2: #e9e9e6;
   --ink: #0b0b0d;
   --ink-soft: #55555c;
-  --ink-faint: #94949b;
+  /* ≥ 4.5:1 on bg, surface and surface-2 (WCAG AA for small text) */
+  --ink-faint: #66666d;
   --line: rgb(11 11 13 / 0.08);
-  --accent: #3a5bff;
-  --accent-soft: rgb(58 91 255 / 0.1);
+  --accent: #3150f0;
+  --accent-soft: rgb(49 80 240 / 0.1);
+  /* Large cobalt surfaces that carry white text */
+  --accent-fill: #3150f0;
   --on-accent: #ffffff;
   --glass-tint: rgb(255 255 255 / 0.55);
   --glass-edge: rgb(255 255 255 / 0.95);
@@ -30,10 +33,11 @@
   --surface-2: #1d1d21;
   --ink: #f2f2f0;
   --ink-soft: #a2a2a9;
-  --ink-faint: #64646c;
+  --ink-faint: #8e8e96;
   --line: rgb(255 255 255 / 0.08);
   --accent: #6e86ff;
   --accent-soft: rgb(110 134 255 / 0.14);
+  --accent-fill: #4460ea;
   --on-accent: #0a0a0c;
   --glass-tint: rgb(24 24 30 / 0.5);
   --glass-edge: rgb(255 255 255 / 0.14);
@@ -51,6 +55,7 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-fill: var(--accent-fill);
   --color-on-accent: var(--on-accent);
   --font-sans: var(--font-geist);
   --font-display: var(--font-geist);

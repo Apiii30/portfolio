@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { ContributionGraph } from "@/components/about/contribution-graph";
 import { PhotoTile } from "@/components/about/photo-tile";
-import { Reveal, SplitHeading } from "@/components/reveal";
+import { Parallax, Reveal, SplitHeading } from "@/components/reveal";
 import { certificates } from "@/lib/content";
 import { getContributions } from "@/lib/github";
 import { site } from "@/lib/site";
@@ -25,11 +25,14 @@ export function AboutSection() {
       </Reveal>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-12">
-        <Reveal className="lg:col-span-5">
+        <Parallax speed={-0.12} className="h-full lg:col-span-5">
+        <Reveal>
           <PhotoTile />
         </Reveal>
+        </Parallax>
 
-        <Reveal delay={0.08} className={`${tile} flex flex-col justify-between gap-8 lg:col-span-7`}>
+        <Parallax speed={0.06} className="h-full lg:col-span-7">
+        <Reveal delay={0.08} className={`${tile} h-full flex flex-col justify-between gap-8`}>
           <div>
             <SplitHeading
               as="h2"
@@ -61,14 +64,18 @@ export function AboutSection() {
             ))}
           </dl>
         </Reveal>
+        </Parallax>
 
-        <Reveal delay={0.12} className={`${tile} min-w-0 lg:col-span-7`}>
+        <Parallax speed={0.12} className="h-full lg:col-span-7">
+        <Reveal delay={0.12} className={`${tile} h-full min-w-0`}>
           <Suspense fallback={<GraphFallback />}>
             <GitHubTile />
           </Suspense>
         </Reveal>
+        </Parallax>
 
-        <Reveal delay={0.16} className={`${tile} flex flex-col justify-between gap-8 lg:col-span-5`}>
+        <Parallax speed={0.2} className="h-full lg:col-span-5">
+        <Reveal delay={0.16} className={`${tile} h-full flex flex-col justify-between gap-8`}>
           <p className="text-[0.8rem] font-medium text-ink-faint">Before code</p>
           <div>
             <p className="font-display text-6xl leading-none">
@@ -81,8 +88,10 @@ export function AboutSection() {
           </div>
           <p className="border-t border-line pt-4 text-sm text-ink-soft">Former student council president.</p>
         </Reveal>
+        </Parallax>
 
-        <Reveal delay={0.1} className={`${tile} grid gap-6 sm:grid-cols-2 lg:col-span-12`}>
+        <Parallax speed={0.08} className="h-full lg:col-span-12">
+        <Reveal delay={0.1} className={`${tile} h-full grid gap-6 sm:grid-cols-2`}>
           <div className="flex items-baseline gap-4">
             <p className="w-24 shrink-0 text-[0.8rem] font-medium text-accent">Now</p>
             <p className="text-lg leading-snug">
@@ -102,6 +111,7 @@ export function AboutSection() {
             <p className="text-lg leading-snug">Traveling, and finding new places to get slightly lost in.</p>
           </div>
         </Reveal>
+        </Parallax>
       </div>
     </section>
   );

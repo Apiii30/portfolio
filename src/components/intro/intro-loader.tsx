@@ -132,15 +132,15 @@ export function IntroLoader() {
       role="status"
       aria-live="polite"
       aria-label={status}
-      className="fixed inset-0 z-[100] bg-accent text-white"
+      className="fixed inset-0 z-[100] bg-accent-fill text-white"
     >
       <div ref={contentRef} className="flex h-full flex-col justify-between p-5 sm:p-8 lg:p-10">
         <div className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-2 font-medium">
-            <span className="grid size-8 place-items-center rounded-full bg-white text-[0.75rem] font-semibold text-accent">HA</span>
+            <span className="grid size-8 place-items-center rounded-full bg-white text-[0.75rem] font-semibold text-accent-fill">HA</span>
             Hafidz Asmar Meisanda
           </span>
-          <span className="opacity-70">Portfolio — 2026</span>
+          <span className="opacity-85">Portfolio — 2026</span>
         </div>
 
         <div>
@@ -149,7 +149,7 @@ export function IntroLoader() {
           </motion.p>
           <div className="mt-2 flex items-end justify-between gap-6">
             <motion.span className="font-display text-[clamp(6rem,24vw,20rem)] leading-[0.8] tabular-nums">{counter}</motion.span>
-            <span className="mb-[0.6em] hidden max-w-[22ch] text-right text-sm opacity-70 sm:block">
+            <span className="mb-[0.6em] hidden max-w-[22ch] text-right text-sm opacity-85 sm:block">
               Full-stack developer and founder of Webkeun.id, in Bandung.
             </span>
           </div>

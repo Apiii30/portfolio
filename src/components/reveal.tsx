@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { useRef } from "react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -55,9 +55,31 @@ export function Parallax({
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [speed * 100, speed * -100]);
+  // Spring-smoothed so the drift glides rather than tracking the wheel 1:1.
+  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.4 });
+  const y = useTransform(smooth, [0, 1], reduce ? [0, 0] : [speed * 100, speed * -100]);
   return (
     <motion.div ref={ref} style={{ y }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * Section-level entrance tied to scroll: the whole section rises, scales up
+ * and brightens as its top travels into view, then stays put. Only acts on
+ * the way in, so sticky content inside is unaffected once you're there.
+ */
+export function ScrollSection({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 25%"] });
+  const p = useSpring(scrollYProgress, { stiffness: 80, damping: 22, mass: 0.5 });
+  const y = useTransform(p, [0, 1], reduce ? [0, 0] : [90, 0]);
+  const scale = useTransform(p, [0, 1], reduce ? [1, 1] : [0.96, 1]);
+  const opacity = useTransform(p, [0, 0.6], reduce ? [1, 1] : [0.35, 1]);
+  return (
+    <motion.div ref={ref} style={{ y, scale, opacity, transformOrigin: "50% 0%" }}>
       {children}
     </motion.div>
   );

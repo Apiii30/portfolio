@@ -30,29 +30,39 @@ export function ContactSection() {
 
   return (
     <section id="contact" aria-labelledby="contact-title" className="mx-auto max-w-310 px-3 pt-24 sm:px-6 sm:pt-32">
-      <ScrollZoom className="relative bg-accent p-6 text-white sm:p-12 lg:p-16">
+      <ScrollZoom className="relative bg-accent-fill p-6 text-white sm:p-10 lg:p-12">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-[12%] -top-[30%] aspect-square w-[60%] rounded-full bg-white/10 ring-1 ring-white/15"
         />
+        <div className="relative grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-12">
+        <div className="lg:col-span-7">
         <p className="relative inline-flex items-center rounded-full bg-white/15 px-3 py-1.5 text-[0.8rem] font-medium">
-          <span className="mr-2 grid size-5 place-items-center rounded-full bg-white text-[0.65rem] font-semibold text-accent">06</span>
+          <span className="mr-2 grid size-5 place-items-center rounded-full bg-white text-[0.65rem] font-semibold text-accent-fill">06</span>
           Contact
         </p>
         <SplitHeading
           id="contact-title"
           text={"Hiring a web developer intern? Let\u2019s talk."}
-          className="relative mt-6 max-w-[15ch] font-display text-[clamp(2.4rem,5.6vw,5.5rem)] leading-[0.92]"
+          className="relative mt-5 max-w-[15ch] font-display text-[clamp(2.2rem,4.4vw,4.25rem)] leading-[0.95]"
         />
+        <ul className="relative mt-5 flex flex-wrap gap-2 text-sm font-medium">
+          {[site.availability, site.workMode, "Full-stack · React, Next.js, Express"].map((t, i) => (
+            <li key={t} className="flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 ring-1 ring-white/20">
+              {i === 0 && <span className="size-2 rounded-full bg-[#7dffb0]" aria-hidden />}
+              {t}
+            </li>
+          ))}
+        </ul>
 
-        <div className="relative mt-10 flex flex-wrap items-center gap-3">
+        <div className="relative mt-8 flex flex-wrap items-center gap-3">
           <Magnetic strength={0.2}>
             <a
               href={`mailto:${site.email}`}
-              className="group inline-flex items-center gap-4 rounded-full bg-white py-2.5 pl-6 pr-2.5 font-medium text-accent sm:text-lg"
+              className="group inline-flex items-center gap-4 rounded-full bg-white py-2.5 pl-6 pr-2.5 font-medium text-accent-fill sm:text-lg"
             >
               {site.email}
-              <span className="grid size-10 place-items-center rounded-full bg-accent text-white transition-transform duration-500 ease-out-expo group-hover:-rotate-45">
+              <span className="grid size-10 place-items-center rounded-full bg-accent-fill text-white transition-transform duration-500 ease-out-expo group-hover:-rotate-45">
                 <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path d="M2 8h12M9 3l5 5-5 5" />
                 </svg>
@@ -76,17 +86,20 @@ export function ContactSection() {
           </button>
         </div>
 
-        <ul className="relative mt-14 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        </div>
+
+        <div className="lg:col-span-5">
+        <ul className="relative grid grid-cols-2 gap-2">
           {links.map((l) => (
             <li key={l.label}>
               <a
                 href={l.href}
                 {...("download" in l ? { download: true } : { target: "_blank", rel: "noreferrer" })}
-                className="group flex items-end justify-between gap-4 rounded-[20px] bg-white/10 p-5 ring-1 ring-white/15 transition-colors hover:bg-white/20"
+                className="group flex items-end justify-between gap-3 rounded-[20px] bg-white/10 p-4 ring-1 ring-white/15 transition-colors hover:bg-white/20"
               >
-                <span>
-                  <span className="block font-display text-2xl">{l.label}</span>
-                  <span className="mt-1 block text-[0.8rem] text-white/70">{l.note}</span>
+                <span className="min-w-0">
+                  <span className="block font-display text-xl">{l.label}</span>
+                  <span className="mt-0.5 block truncate text-[0.75rem] text-white/85">{l.note}</span>
                 </span>
                 <span className="grid size-8 place-items-center rounded-full bg-white/15 text-sm transition-transform duration-500 ease-out-expo group-hover:-rotate-45">
                   {"download" in l ? "↓" : "→"}
@@ -95,6 +108,34 @@ export function ContactSection() {
             </li>
           ))}
         </ul>
+
+        {/* Secondary: client work goes through the studio, not the internship inbox */}
+        <div className="relative mt-2 flex flex-col gap-4 rounded-[20px] bg-surface p-5 text-ink sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start">
+          <div>
+            <p className="font-display text-lg leading-tight">Need a website or a digital invitation instead?</p>
+            <p className="mt-1 text-sm text-ink-soft">Client projects go through my studio, Webkeun.id.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={site.webkeun}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-bg transition-transform hover:-translate-y-0.5"
+            >
+              Visit Webkeun.id ↗
+            </a>
+            <a
+              href={site.webkeunWhatsapp}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-11 items-center rounded-full px-5 text-sm font-medium ring-1 ring-line transition-colors hover:bg-surface-2"
+            >
+              Chat on WhatsApp
+            </a>
+          </div>
+        </div>
+        </div>
+        </div>
       </ScrollZoom>
     </section>
   );

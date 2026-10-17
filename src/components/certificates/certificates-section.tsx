@@ -45,7 +45,7 @@ export function CertificatesSection() {
         </div>
         <Reveal delay={0.1} className="lg:col-span-5 lg:pb-2">
           <p className="max-w-[40ch] leading-snug text-ink-soft">
-            One from the internship, one from the course I&rsquo;m taking now. Both open as the original PDF, and the Dicoding one can be
+            One from the internship, one from a course I recently completed. Both open as the original PDF, and the Dicoding one can be
             verified online.
           </p>
         </Reveal>
