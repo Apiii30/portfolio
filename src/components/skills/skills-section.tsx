@@ -9,10 +9,11 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  useInView,
   useVelocity,
   wrap,
 } from "motion/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Parallax, Reveal, SplitHeading } from "@/components/reveal";
 import { coreStack, foundations, learning, type Skill } from "@/lib/skills";
 
@@ -119,7 +120,7 @@ function CoreStack() {
 
       <div className="relative mt-5 flex flex-1 flex-col justify-center gap-3 sm:gap-4">
         {coreStack.map((g, i) => (
-          <Lane key={g.layer} layer={g.layer} skills={g.skills} speed={i % 2 ? 1.1 : -1.1} />
+          <Lane key={g.layer} layer={g.layer} skills={g.skills} speed={i % 2 ? 2.2 : -2.2} />
         ))}
       </div>
 
@@ -135,7 +136,8 @@ function CoreStack() {
   );
 }
 
-const COPIES = 4;
+// Two copies, each wider than the card; speeds are a share of both copies.
+const COPIES = 2;
 
 function Lane({ layer, skills, speed }: { layer: string; skills: readonly Skill[]; speed: number }) {
   const reduce = useReducedMotion();
@@ -143,6 +145,13 @@ function Lane({ layer, skills, speed }: { layer: string; skills: readonly Skill[
   const { scrollY } = useScroll();
   const velocity = useVelocity(scrollY);
   const boost = useSpring(useTransform(velocity, [-1500, 0, 1500], [-2.5, 0, 2.5]), { damping: 50, stiffness: 300 });
+  const laneRef = useRef<HTMLDivElement>(null);
+  // Only run while near the screen.
+  const visible = useInView(laneRef, { margin: "200px 0px" });
+  const visibleRef = useRef(false);
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
   const hoverRef = useRef(1);
   const hoverTarget = useRef(1);
   const [hovered, setHovered] = useState(false);
@@ -160,7 +169,7 @@ function Lane({ layer, skills, speed }: { layer: string; skills: readonly Skill[
   }, [skills]);
 
   useAnimationFrame((_, delta) => {
-    if (reduce) return;
+    if (reduce || !visibleRef.current) return;
     // ease toward 0 while hovered, back to 1 after
     hoverRef.current += (hoverTarget.current - hoverRef.current) * 0.08;
     const b = boost.get();
@@ -170,7 +179,7 @@ function Lane({ layer, skills, speed }: { layer: string; skills: readonly Skill[
   });
 
   return (
-    <div onPointerEnter={() => hover(true)} onPointerLeave={() => hover(false)} className="group/lane relative min-w-0" aria-hidden>
+    <div ref={laneRef} onPointerEnter={() => hover(true)} onPointerLeave={() => hover(false)} className="group/lane relative min-w-0" aria-hidden>
       <div className="mb-2 flex items-center gap-2 px-6 sm:px-8">
         <span
           className={`rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold transition-colors duration-300 ${hovered ? "bg-accent text-white" : "[background:color-mix(in_oklab,var(--bg)_10%,transparent)]"}`}

@@ -9,6 +9,7 @@ import { projects } from "@/lib/projects";
 type Phase = "loading" | "leaving" | "gone";
 
 const MIN_MS = 1800;
+const MIN_MS_MOBILE = 900;
 const MAX_MS = 4500;
 const EASE_IN_OUT = [0.76, 0, 0.24, 1] as const;
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -62,7 +63,9 @@ export function IntroLoader() {
     html.classList.add("intro-lock");
     window.scrollTo(0, 0);
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const minMs = reduce ? 300 : MIN_MS;
+    // Phones get a shorter hold: the content matters more than the show on a slow connection.
+    const small = matchMedia("(max-width: 767px)").matches;
+    const minMs = reduce ? 300 : small ? MIN_MS_MOBILE : MIN_MS;
 
     // The page waits behind the loader via the `intro-hold` class, set by the
     // head script before first paint (never inline styles: React owns <main>).
@@ -99,7 +102,7 @@ export function IntroLoader() {
       if (shown.get() >= 100 && !left) {
         left = true;
         // A beat on "100" before leaving.
-        setTimeout(() => leave(reduce), reduce ? 0 : 250);
+        setTimeout(() => leave(reduce), reduce ? 0 : small ? 120 : 250);
         return;
       }
       raf = requestAnimationFrame(tick);

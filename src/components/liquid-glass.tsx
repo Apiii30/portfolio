@@ -95,6 +95,9 @@ export function LiquidGlass({
 
 function supportsBackdropSvgFilter() {
   if (typeof navigator === "undefined") return false;
+  // Refraction is a desktop treat: an SVG filter inside backdrop-filter is
+  // re-run on every scroll frame, which mid-range phones feel.
+  if (!matchMedia("(pointer: fine)").matches) return false;
   // userAgentData only exists in Chromium-based browsers.
   return "userAgentData" in navigator;
 }

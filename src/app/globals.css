@@ -117,6 +117,21 @@ body {
   opacity: 0;
 }
 
+/* Contribution graph cells (see ContributionGraph) */
+.cg-cell {
+  opacity: 0;
+  transform: scale(0.4);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-in="true"] .cg-cell {
+  opacity: var(--o);
+  transform: none;
+}
+
 /* Lenis */
 html.lenis,
 html.lenis body {
@@ -138,6 +153,11 @@ html.lenis body {
     background: var(--glass-tint);
     -webkit-backdrop-filter: blur(14px) saturate(1.7);
     backdrop-filter: blur(14px) saturate(1.7);
+    @media (pointer: coarse) {
+      /* Lighter frosting on phones; the tint carries most of the look. */
+      -webkit-backdrop-filter: blur(8px) saturate(1.4);
+      backdrop-filter: blur(8px) saturate(1.4);
+    }
     box-shadow:
       inset 0 1px 0 var(--glass-edge),
       inset 0 -1px 0 rgb(255 255 255 / 0.08),

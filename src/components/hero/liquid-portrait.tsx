@@ -1,6 +1,6 @@
 "use client";
 
-import { useMotionValueEvent, useReducedMotion, type MotionValue } from "motion/react";
+import { motion, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
@@ -16,22 +16,24 @@ type Props = {
  * `progress`. The seam is fbm noise, refracts both images, and glows in the
  * accent colour. The cursor drags a small ripple through the picture.
  * Images are fitted whole (never cropped) and stand on the bottom edge.
- * Falls back to a plain crossfade without WebGL or with reduced motion.
+ * Falls back to a plain crossfade without WebGL, with reduced motion, and on
+ * low-power phones (the shader runs every frame at screen resolution).
  */
 export function LiquidPortrait({ from, to, progress, className = "" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
   const [ready, setReady] = useState(false);
-  const [fade, setFade] = useState(0);
   const state = useRef({ progress: progress.get(), mx: 0.5, my: 0.5, hover: 0, hoverTarget: 0 });
+  // Fallback crossfade, driven by motion values so it never re-renders React per scroll frame.
+  const toOpacity = useTransform(progress, (v) => v);
+  const fromOpacity = useTransform(progress, (v) => 1 - v);
 
   useMotionValueEvent(progress, "change", (v) => {
     state.current.progress = v;
-    if (!ready) setFade(v);
   });
 
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || lowPower()) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const gl = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false });
@@ -69,7 +71,8 @@ export function LiquidPortrait({ from, to, progress, className = "" }: Props) {
     const textures: WebGLTexture[] = [];
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Phones render at most 1.5× — the soft liquid edge doesn't need 3× pixels.
+      const dpr = Math.min(window.devicePixelRatio || 1, matchMedia("(pointer: coarse)").matches ? 1.5 : 2);
       const w = Math.round(canvas.clientWidth * dpr);
       const h = Math.round(canvas.clientHeight * dpr);
       if (canvas.width !== w || canvas.height !== h) {
@@ -161,20 +164,18 @@ export function LiquidPortrait({ from, to, progress, className = "" }: Props) {
       onPointerLeave={() => (state.current.hoverTarget = 0)}
     >
       {/* Real images stay in the DOM: first paint, fallback, and alt text. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <motion.img
         src={from.src}
         alt={from.alt}
         fetchPriority="high"
         className="absolute inset-y-0 left-[7%] h-full w-[86%] object-contain object-bottom"
-        style={{ opacity: ready ? 0 : 1 - fade }}
+        style={{ opacity: ready ? 0 : fromOpacity }}
       />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <motion.img
         src={to.src}
         alt={to.alt}
         className="absolute inset-y-0 left-[7%] h-full w-[86%] object-contain object-bottom"
-        style={{ opacity: ready ? 0 : fade }}
+        style={{ opacity: ready ? 0 : toOpacity }}
       />
       <canvas
         ref={canvasRef}
@@ -184,6 +185,15 @@ export function LiquidPortrait({ from, to, progress, className = "" }: Props) {
       />
     </div>
   );
+}
+
+/** Touch device with few cores or little memory: skip WebGL and crossfade instead. */
+function lowPower() {
+  if (typeof navigator === "undefined") return false;
+  if (!matchMedia("(pointer: coarse)").matches) return false;
+  const cores = navigator.hardwareConcurrency ?? 8;
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
+  return cores <= 4 || memory <= 4;
 }
 
 const VERT = /* glsl */ `

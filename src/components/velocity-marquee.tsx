@@ -8,10 +8,11 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  useInView,
   useVelocity,
   wrap,
 } from "motion/react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 type Row = { items: readonly string[]; speed: number; tone?: "ink" | "faint" | "accent" };
 
@@ -38,26 +39,34 @@ function MarqueeRow({ items, speed, tone = "ink" }: Row) {
   const boost = useTransform(smoothVelocity, [0, 1000], [0, 6], { clamp: false });
   const skew = useTransform(smoothVelocity, [-2500, 0, 2500], [7, 0, -7]);
   const direction = useRef(1);
+  const rowRef = useRef<HTMLDivElement>(null);
+  // Only run while near the screen: no work (or battery) spent on rows you can't see.
+  const visible = useInView(rowRef, { margin: "200px 0px" });
+  const visibleRef = useRef(false);
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
 
-  // Four copies of the content; we loop across one copy's width (25%).
-  const x = useTransform(baseX, (v) => `${wrap(-25, 0, v)}%`);
+  // Two copies of the content (each wider than the screen); loop across one copy (50%).
+  // Speeds are per copy, so they're halved to keep the same pace in pixels.
+  const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
 
   useAnimationFrame((_, delta) => {
-    if (reduce) return;
+    if (reduce || !visibleRef.current) return;
     const b = boost.get();
     // Scrolling down keeps the row's own direction, scrolling up flips it.
     if (b < 0) direction.current = -1;
     else if (b > 0) direction.current = 1;
     const dt = delta / 1000;
-    baseX.set(baseX.get() + direction.current * speed * dt * (1 + Math.abs(b)));
+    baseX.set(baseX.get() + direction.current * speed * 2 * dt * (1 + Math.abs(b)));
   });
 
   const color = tone === "faint" ? "text-ink-faint" : tone === "accent" ? "text-accent" : "text-ink";
 
   return (
-    <div className="flex whitespace-nowrap">
+    <div ref={rowRef} className="flex whitespace-nowrap">
       <motion.div style={{ x, skewX: reduce ? 0 : skew }} className={`flex shrink-0 ${color}`}>
-        {Array.from({ length: 4 }).map((_, copy) => (
+        {Array.from({ length: 2 }).map((_, copy) => (
           <span key={copy} className="flex shrink-0 items-center">
             {items.map((item) => (
               <span

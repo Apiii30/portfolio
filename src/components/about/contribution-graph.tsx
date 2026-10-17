@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { useInView, useReducedMotion } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import type { ContributionDay } from "@/lib/github";
 
@@ -24,6 +24,8 @@ export function ContributionGraph({ days: allDays, weeks = 22 }: { days: Contrib
   const [hover, setHover] = useState<ContributionDay | null>(null);
 
   const days = useMemo(() => allDays.slice(-weeks * 7), [allDays, weeks]);
+
+  const dayIndex = useMemo(() => new Map(days.map((d, i) => [d.date, i])), [days]);
 
   const columns = useMemo(() => {
     // Pad the front so the first column starts on Sunday, like GitHub.
@@ -62,6 +64,11 @@ export function ContributionGraph({ days: allDays, weeks = 22 }: { days: Contrib
           className="w-full overflow-visible"
           role="img"
           aria-label={`GitHub contributions over the last ${weeks} weeks`}
+          data-in={inView || reduce ? "true" : "false"}
+          onPointerOver={(e) => {
+            const i = (e.target as Element).getAttribute("data-i");
+            if (i !== null) setHover(days[Number(i)]);
+          }}
           onPointerLeave={() => setHover(null)}
         >
           {months.map((m) => (
@@ -69,23 +76,26 @@ export function ContributionGraph({ days: allDays, weeks = 22 }: { days: Contrib
               {m.label}
             </text>
           ))}
+          {/* Plain rects animated with CSS: 150+ cells shouldn't each be a React animation component. */}
           {columns.map((col, ci) =>
             col.map((d, ri) =>
               d ? (
-                <motion.rect
+                <rect
                   key={d.date}
+                  data-i={dayIndex.get(d.date)}
                   x={ci * cell + 1.5}
                   y={ri * cell + 1.5}
                   width={cell - 3}
                   height={cell - 3}
                   rx={2.5}
-                  onPointerEnter={() => setHover(d)}
-                  className={d.level ? "fill-accent" : "fill-ink/[0.07]"}
-                  initial={reduce ? false : { opacity: 0, scale: 0.4 }}
-                  animate={inView ? { opacity: d.level ? OPACITY[d.level] : 1, scale: 1 } : undefined}
-                  // Sweep in from the most recent week backwards.
-                  transition={{ duration: 0.4, delay: reduce ? 0 : (n - ci) * 0.012 + ri * 0.01 }}
-                  style={{ originX: "50%", originY: "50%" }}
+                  className={`cg-cell ${d.level ? "fill-accent" : "fill-ink/[0.07]"}`}
+                  style={
+                    {
+                      "--o": d.level ? OPACITY[d.level] : 1,
+                      // Sweep in from the most recent week backwards.
+                      transitionDelay: reduce ? "0s" : `${((n - ci) * 0.012 + ri * 0.01).toFixed(3)}s`,
+                    } as React.CSSProperties
+                  }
                 />
               ) : null,
             ),
