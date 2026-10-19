@@ -87,6 +87,7 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
       { name: "REST API design & development" },
       { name: "JWT authentication", icon: siJsonwebtokens },
       { name: "Sequelize", icon: siSequelize },
+      { name: "Python", icon: siPython },
       { name: "PHP", icon: siPhp },
       { name: "Laravel", icon: siLaravel },
       { name: "MongoDB", icon: siMongodb },
@@ -113,7 +114,7 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
 export const learning: readonly { title: string; skills: readonly Skill[] }[] = [
   {
     title: "Backend",
-    skills: [{ name: "Python", icon: siPython }, { name: "Backend architecture" }],
+    skills: [{ name: "Backend architecture" }],
   },
   {
     title: "Android",
