@@ -41,6 +41,8 @@ export function ContactSection() {
           <span className="mr-2 grid size-5 place-items-center rounded-full bg-white text-[0.65rem] font-semibold text-accent-fill">06</span>
           Contact
         </p>
+        {/* The hiring pitch is for visitors; data-nosnippet keeps it out of search result text */}
+        <div data-nosnippet>
         <SplitHeading
           id="contact-title"
           text={"Hiring a web developer intern? Let\u2019s talk."}
@@ -54,6 +56,7 @@ export function ContactSection() {
             </li>
           ))}
         </ul>
+        </div>
 
         <div className="relative mt-8 flex flex-wrap items-center gap-3">
           <Magnetic strength={0.2}>

@@ -12,7 +12,8 @@ const facts = [
   { label: "Based in", value: "Bandung, ID" },
   { label: "Studying", value: "D3 Informatics Mgmt." },
   { label: "Running", value: "Webkeun.id" },
-  { label: "Looking for", value: "An internship" },
+  // Shown to visitors, kept out of search snippets (data-nosnippet).
+  { label: "Looking for", value: "An internship", private: true },
 ] as const;
 
 export function AboutSection() {
@@ -57,7 +58,7 @@ export function AboutSection() {
 
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {facts.map((f) => (
-              <div key={f.label} className="rounded-2xl bg-surface-2 p-4">
+              <div key={f.label} data-nosnippet={"private" in f || undefined} className="rounded-2xl bg-surface-2 p-4">
                 <dt className="text-[0.75rem] text-ink-faint">{f.label}</dt>
                 <dd className="mt-1 font-display text-lg leading-tight">{f.value}</dd>
               </div>

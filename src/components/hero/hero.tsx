@@ -88,7 +88,8 @@ export function Hero() {
           className={`${card} relative flex flex-col justify-between gap-4 overflow-hidden p-5 sm:gap-6 sm:p-8 lg:col-span-7 lg:row-span-2 lg:p-10`}
         >
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-[0.8rem] font-medium text-accent">
+            {/* Job-seeking status is for visitors, not for search snippets */}
+            <span data-nosnippet className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-[0.8rem] font-medium text-accent">
               <span className="relative flex size-2">
                 <span className="absolute inset-0 animate-ping rounded-full bg-accent opacity-60" />
                 <span className="relative size-2 rounded-full bg-accent" />

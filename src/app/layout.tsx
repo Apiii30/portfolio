@@ -6,6 +6,7 @@ import { IntroLoader } from "@/components/intro/intro-loader";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { site } from "@/lib/site";
 import { siteUrl } from "@/lib/site-url";
+import { ldJson, websiteJsonLd } from "@/lib/structured-data";
 import "./globals.css";
 
 const geist = Geist({
@@ -20,16 +21,27 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
-  title: `${site.shortName} — ${site.role}`,
+  title: `${site.name} — Full-stack Developer`,
   description: site.description,
   authors: [{ name: site.name }],
   alternates: { canonical: "/" },
   openGraph: {
-    title: `${site.shortName} — ${site.role}`,
+    title: `${site.name} — Full-stack Developer`,
     description: site.description,
+    url: "/",
+    siteName: site.name,
     type: "website",
     locale: "en_US",
   },
+  twitter: { card: "summary_large_image" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  // Google Search Console's "HTML tag" method: set GOOGLE_SITE_VERIFICATION in
+  // Vercel (Project → Settings → Environment Variables) to the content="…" value.
+  verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
 };
 
 export const viewport: Viewport = {
@@ -37,22 +49,6 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#f2f2f0" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0c" },
   ],
-};
-
-const personJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: site.name,
-  alternateName: site.shortName,
-  jobTitle: "Full-stack Developer",
-  email: `mailto:${site.email}`,
-  url: siteUrl.href,
-  image: new URL("/images/hafidz-formal.jpg", siteUrl).href,
-  address: { "@type": "PostalAddress", addressLocality: "Bandung", addressCountry: "ID" },
-  alumniOf: { "@type": "CollegeOrUniversity", name: "Politeknik Praktisi Bandung" },
-  worksFor: { "@type": "Organization", name: "Webkeun.id", url: site.webkeun },
-  sameAs: [site.github, site.linkedin],
-  knowsAbout: ["React", "Next.js", "TypeScript", "Node.js", "Express", "PostgreSQL", "MySQL", "Supabase"],
 };
 
 // Runs before first paint so the saved / system theme never flashes, and so a
@@ -71,7 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
+          dangerouslySetInnerHTML={{ __html: ldJson(websiteJsonLd) }}
         />
       </head>
       <body>

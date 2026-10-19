@@ -8,10 +8,12 @@ import { ScrollSection } from "@/components/reveal";
 import { SkillsSection } from "@/components/skills/skills-section";
 import { VelocityMarquee } from "@/components/velocity-marquee";
 import { WorkSection } from "@/components/work/work-section";
+import { ldJson, profileJsonLd } from "@/lib/structured-data";
 
 export default function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(profileJsonLd) }} />
       <Nav />
         {/* clip, not hidden: entrance animations start off-screen, and sticky sections must keep working */}
         <main className="overflow-x-clip">
@@ -38,10 +40,13 @@ export default function Home() {
           <ScrollSection>
             <SkillsSection />
           </ScrollSection>
-          <VelocityMarquee
-            className="mt-20"
-            rows={[{ items: ["Open to internships", "Available now", "Remote or on-site"], speed: -2, tone: "accent" }]}
-          />
+          {/* Availability is for visitors; data-nosnippet keeps it out of Google's result text */}
+          <div data-nosnippet>
+            <VelocityMarquee
+              className="mt-20"
+              rows={[{ items: ["Open to internships", "Available now", "Remote or on-site"], speed: -2, tone: "accent" }]}
+            />
+          </div>
           <ContactSection />
         </main>
         <Footer />
