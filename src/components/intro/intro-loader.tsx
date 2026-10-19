@@ -5,13 +5,13 @@ import { useLenis } from "lenis/react";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { LOGO_AXES, LOGO_PIECES, LOGO_VIEWBOX, type LogoPiece } from "@/components/logo";
 import { INTRO_KEY, intro } from "@/lib/intro";
-import { projects } from "@/lib/projects";
 
 type Phase = "loading" | "locked" | "leaving" | "gone";
 
 const MIN_MS = 2200;
 const MIN_MS_MOBILE = 1200;
-const MAX_MS = 4500;
+const MAX_MS = 6000;
+const MAX_MS_MOBILE = 4500;
 const EASE_IN_OUT = [0.76, 0, 0.24, 1] as const;
 const EASE_IN = [0.7, 0, 0.84, 0] as const;
 
@@ -95,27 +95,56 @@ export function IntroLoader() {
       fill.set(1);
     } else html.classList.add("intro-hold");
 
-    const steps: [string, Promise<unknown>][] = [
-      ["Loading fonts", document.fonts.ready],
-      ["Loading portraits", Promise.all([load("/images/hafidz-casual-cutout.webp"), load("/images/hafidz-formal-cutout.webp")])],
-      ["Loading projects", Promise.all(projects.map((p) => load(p.cover.src)))],
-    ];
+    let total = 0;
     let completed = 0;
-    steps.forEach(([, task], i) =>
+    const track = (task: Promise<unknown>) => {
+      total++;
       task
         .catch(() => {})
         .then(() => {
           completed++;
-          setStatus(completed === steps.length ? "Ready" : steps[Math.min(i + 1, steps.length - 1)][0]);
-        }),
-    );
+          setStatus(completed === total ? "Ready" : `Loading assets ${completed} of ${total}`);
+        });
+    };
+    track(document.fonts.ready);
+    // The hero shader reads these by URL, not through an <img>.
+    track(load("/images/hafidz-casual-cutout.webp"));
+    track(load("/images/hafidz-formal-cutout.webp"));
+
+    // Every image the page shows, fetched while the loader plays. Lazy images
+    // are switched to eager rather than fetched by URL, so the browser picks
+    // the same srcset size it would on scroll and nothing downloads twice.
+    // Watched rather than listed once: sections that swap layout after
+    // hydration (desktop vs phone) replace their <img>s, and a replaced
+    // image no longer has anything to wait for.
+    const tracked = new WeakSet<HTMLImageElement>();
+    const pending = new Map<HTMLImageElement, () => void>();
+    const scan = () => {
+      main?.querySelectorAll("img").forEach((img) => {
+        if (tracked.has(img)) return;
+        tracked.add(img);
+        if (img.loading === "lazy") img.loading = "eager";
+        track(
+          new Promise<void>((resolve) => {
+            pending.set(img, resolve);
+            settle(img).then(resolve);
+          }).finally(() => pending.delete(img)),
+        );
+      });
+      for (const [img, resolve] of pending) if (!img.isConnected) resolve();
+    };
+    scan();
+    const watcher = new MutationObserver(scan);
+    if (main) watcher.observe(main, { childList: true, subtree: true });
 
     const start = performance.now();
+    const maxMs = small ? MAX_MS_MOBILE : MAX_MS;
     let raf = 0;
     let done = false;
     const tick = () => {
       const elapsed = performance.now() - start;
-      const real = elapsed > MAX_MS ? 100 : (completed / steps.length) * 100;
+      // Past the cap the page opens anyway; whatever's left keeps loading behind it.
+      const real = elapsed > maxMs ? 100 : (completed / total) * 100;
       const pace = Math.min(100, (elapsed / minMs) * 100);
       const target = Math.min(real, pace);
       const next = shown.get() + (target - shown.get()) * 0.1;
@@ -124,6 +153,7 @@ export function IntroLoader() {
       if (!reduce) assembly.set((shown.get() / 100) * 0.72);
       if (shown.get() >= 100 && !done) {
         done = true;
+        watcher.disconnect();
         if (reduce) leaveReduced();
         else lock().then(leave);
         return;
@@ -222,6 +252,7 @@ export function IntroLoader() {
 
     return () => {
       cancelAnimationFrame(raf);
+      watcher.disconnect();
       html.classList.remove("intro-lock", "intro-hold");
     };
   }, [shown, assembly, fill, seen]);
@@ -519,6 +550,18 @@ function Streaks() {
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Resolves once a page <img> has loaded (or failed) and is decoded, so it paints without a hitch. */
+function settle(img: HTMLImageElement) {
+  const loaded =
+    img.complete
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          img.addEventListener("load", () => resolve(), { once: true });
+          img.addEventListener("error", () => resolve(), { once: true });
+        });
+  return loaded.then(() => img.decode().catch(() => {}));
+}
 
 function load(src: string) {
   return new Promise<void>((resolve) => {
