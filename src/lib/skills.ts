@@ -85,6 +85,7 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
     title: "Backend & data",
     skills: [
       { name: "REST API design & development" },
+      { name: "Backend architecture" },
       { name: "JWT authentication", icon: siJsonwebtokens },
       { name: "Sequelize", icon: siSequelize },
       { name: "Python", icon: siPython },
@@ -112,10 +113,6 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
 
 /** Ongoing learning, kept apart from what is already applied in projects. */
 export const learning: readonly { title: string; skills: readonly Skill[] }[] = [
-  {
-    title: "Backend",
-    skills: [{ name: "Backend architecture" }],
-  },
   {
     title: "Android",
     skills: [

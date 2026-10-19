@@ -321,9 +321,9 @@ function Learning() {
         </span>
         Currently learning
       </p>
-      <p className="relative mt-1 text-balance font-display text-xl leading-tight">Exploring backend and Android development.</p>
+      <p className="relative mt-1 text-balance font-display text-xl leading-tight">Exploring Android development.</p>
       </div>
-      <dl className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+      <dl className="relative grid gap-3">
         {learning.map((g) => (
           <div key={g.title} className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/15">
             <dt className="text-[0.75rem] font-medium text-white/85">{g.title}</dt>
