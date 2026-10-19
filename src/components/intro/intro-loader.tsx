@@ -1,18 +1,22 @@
 "use client";
 
-import { animate, motion, stagger, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { animate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useLenis } from "lenis/react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { LOGO_AXES, LOGO_PIECES, LOGO_VIEWBOX, type LogoPiece } from "@/components/logo";
 import { INTRO_KEY, intro } from "@/lib/intro";
 import { projects } from "@/lib/projects";
 
-type Phase = "loading" | "leaving" | "gone";
+type Phase = "loading" | "locked" | "leaving" | "gone";
 
-const MIN_MS = 2600;
-const MIN_MS_MOBILE = 1300;
+const MIN_MS = 2200;
+const MIN_MS_MOBILE = 1200;
 const MAX_MS = 4500;
 const EASE_IN_OUT = [0.76, 0, 0.24, 1] as const;
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+const EASE_IN = [0.7, 0, 0.84, 0] as const;
+
+/** Brand navy from public/logo: the loader's stage, in either theme. */
+const NAVY = "#0b1736";
 
 const noop = () => () => {};
 /**
@@ -32,14 +36,16 @@ const readSeen = () => {
 };
 
 /**
- * First-visit loader, as a short motion-graphic piece.
+ * First-visit loader: the HA mark assembling itself, and nothing else.
  *
- * In: blueprint lines draw across the screen, a liquid blob takes shape in the
- *     centre with the HA monogram, three orbit rings spin up (the middle one
- *     fills with the real loading progress), and stack chips drift in around it.
- * Out: the chips get pulled into the blob, the rings spin away, the blob pops
- *      with a shockwave, the text rolls up, and the cobalt screen shrinks into
- *      the hero's portrait card while the page settles in behind it.
+ * Loading: the mark's four pieces float apart on a navy stage, each one
+ *   tracing its outline as the real loading progress climbs, and drifting
+ *   closer the further along it is.
+ * Lock: at 100% they snap together, fill with the brand gradient, and a
+ *   highlight sweeps across the finished mark.
+ * Out: a cobalt circle opens from the mark's centre while the pieces fly back
+ *   out the way they came, then the cobalt screen shrinks into the hero's
+ *   portrait card as the page settles in behind it.
  *
  * Plays once per tab session (add ?intro to the URL to see it again);
  * reduced motion gets a short fade.
@@ -48,9 +54,14 @@ export function IntroLoader() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [status, setStatus] = useState("Loading fonts");
   const rootRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const markRef = useRef<HTMLDivElement>(null);
+  const floodRef = useRef<HTMLDivElement>(null);
+  /** Loading progress shown, 0–100. */
   const shown = useMotionValue(0);
-  const bar = useTransform(shown, (v) => `${v}%`);
+  /** How assembled the mark is: 0 = scattered, 1 = whole, below 0 = flying back out. */
+  const assembly = useMotionValue(0);
+  /** Fills replacing outlines, 0–1. */
+  const fill = useMotionValue(0);
   const lenis = useLenis();
   const seen = useSyncExternalStore(noop, readSeen, () => false);
 
@@ -78,8 +89,11 @@ export function IntroLoader() {
     // head script before first paint (never inline styles: React owns <main>).
     const main = document.querySelector<HTMLElement>("main");
     const header = document.querySelector<HTMLElement>("header");
-    if (reduce) html.classList.remove("intro-hold");
-    else html.classList.add("intro-hold");
+    if (reduce) {
+      html.classList.remove("intro-hold");
+      assembly.set(1);
+      fill.set(1);
+    } else html.classList.add("intro-hold");
 
     const steps: [string, Promise<unknown>][] = [
       ["Loading fonts", document.fonts.ready],
@@ -98,7 +112,7 @@ export function IntroLoader() {
 
     const start = performance.now();
     let raf = 0;
-    let left = false;
+    let done = false;
     const tick = () => {
       const elapsed = performance.now() - start;
       const real = elapsed > MAX_MS ? 100 : (completed / steps.length) * 100;
@@ -106,15 +120,23 @@ export function IntroLoader() {
       const target = Math.min(real, pace);
       const next = shown.get() + (target - shown.get()) * 0.1;
       shown.set(target - next < 0.4 ? target : next);
-      if (shown.get() >= 100 && !left) {
-        left = true;
-        // A beat on "100" before leaving.
-        setTimeout(() => leave(reduce), reduce ? 0 : small ? 120 : 250);
+      // The pieces close most of the gap while loading; the lock does the rest.
+      if (!reduce) assembly.set((shown.get() / 100) * 0.72);
+      if (shown.get() >= 100 && !done) {
+        done = true;
+        if (reduce) leaveReduced();
+        else lock().then(leave);
         return;
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
+
+    const markSeen = () => {
+      try {
+        sessionStorage.setItem(INTRO_KEY, "1");
+      } catch {}
+    };
 
     // Native Web Animations: once finished they leave no inline styles behind
     // (a lingering transform/filter on <main> would break fixed/sticky children).
@@ -142,58 +164,57 @@ export function IntroLoader() {
       }
     };
 
-    const leave = async (reduceMotion: boolean) => {
+    const leaveReduced = async () => {
       setPhase("leaving");
-      try {
-        sessionStorage.setItem(INTRO_KEY, "1");
-      } catch {}
+      markSeen();
+      intro.finish();
+      if (rootRef.current) await animate(rootRef.current, { opacity: 0 }, { duration: 0.3, delay: 0.3 });
+      html.classList.remove("intro-lock");
+      setPhase("gone");
+    };
+
+    // The pieces snap home, the outlines give way to the gradient, the sheen runs.
+    const lock = async () => {
+      setPhase("locked");
+      await Promise.all([
+        animate(assembly, 1, { type: "spring", stiffness: 260, damping: 20, mass: 0.9 }),
+        animate(fill, 1, { duration: 0.6, ease: [0.33, 1, 0.68, 1] }),
+      ]);
+      await wait(small ? 260 : 480);
+    };
+
+    const leave = async () => {
+      setPhase("leaving");
+      markSeen();
       const root = rootRef.current;
-      const content = contentRef.current;
-      if (!root) return;
+      const flood = floodRef.current;
+      if (!root || !flood) return;
 
-      if (reduceMotion) {
-        html.classList.remove("intro-hold");
-        intro.finish();
-        await animate(root, { opacity: 0 }, { duration: 0.3 });
+      // 1. Cobalt opens from the mark while its pieces fly back out.
+      const m = markRef.current?.getBoundingClientRect();
+      const cx = m ? m.left + m.width / 2 : innerWidth / 2;
+      const cy = m ? m.top + m.height / 2 : innerHeight / 2;
+      const reach = Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy));
+      animate(assembly, -2.4, { duration: 0.75, ease: EASE_IN });
+      if (markRef.current) animate(markRef.current, { opacity: 0, filter: "blur(6px)" }, { duration: 0.45, delay: 0.3, ease: EASE_IN });
+      await animate(
+        flood,
+        { clipPath: [`circle(0px at ${cx}px ${cy}px)`, `circle(${reach}px at ${cx}px ${cy}px)`] },
+        { duration: 0.8, delay: 0.12, ease: EASE_IN_OUT },
+      );
+
+      intro.finish();
+      settlePage();
+
+      // 2. The cobalt screen becomes the hero's portrait card.
+      const target = document.querySelector<HTMLElement>("[data-intro-target]")?.getBoundingClientRect();
+      const fits = target && target.width > 0 && target.bottom > 0 && target.top < innerHeight;
+      if (fits) {
+        const inset = `inset(${target.top}px ${innerWidth - target.right}px ${innerHeight - target.bottom}px ${target.left}px round 28px)`;
+        await animate(root, { clipPath: ["inset(0px 0px 0px 0px round 0px)", inset] }, { duration: 1, ease: [0.65, 0, 0.25, 1] });
+        await animate(root, { opacity: 0 }, { duration: 0.35 });
       } else {
-        // 1. The graphic folds in on itself while the text rolls away.
-        const stage = root.querySelector<HTMLElement>("[data-stage]");
-        const c = stage?.getBoundingClientRect();
-        const cx = c ? c.left + c.width / 2 : innerWidth / 2;
-        const cy = c ? c.top + c.height / 2 : innerHeight / 2;
-        const pulls = [...root.querySelectorAll<HTMLElement>("[data-pill]")].map((el, i) => {
-          const r = el.getBoundingClientRect();
-          return animate(
-            el,
-            { x: cx - (r.left + r.width / 2), y: cy - (r.top + r.height / 2), scale: 0.2, opacity: 0 },
-            { duration: 0.6, delay: i * 0.05, ease: [0.7, 0, 0.84, 0] },
-          );
-        });
-        const q = (sel: string) => root.querySelectorAll<HTMLElement>(sel);
-        await Promise.all([
-          ...pulls,
-          animate(q("[data-rings]"), { rotate: 200, scale: 0.35, opacity: 0 }, { duration: 0.75, ease: [0.7, 0, 0.84, 0] }),
-          animate(q("[data-lines]"), { opacity: 0 }, { duration: 0.5 }),
-          content ? animate(content.querySelectorAll("[data-out]"), { y: "-110%", opacity: 0 }, { duration: 0.55, delay: stagger(0.05), ease: [0.7, 0, 0.84, 0] }) : null,
-        ]);
-        // The pop and the shrink overlap, so there's never a blank cobalt beat.
-        animate(q("[data-blob]"), { scale: [1, 1.18, 0] }, { duration: 0.55, times: [0, 0.35, 1], ease: EASE_IN_OUT });
-        animate(q("[data-burst]"), { scale: [0.3, 3.2], opacity: [0.9, 0] }, { duration: 0.75, delay: 0.25, ease: EASE_OUT });
-        await new Promise((r) => setTimeout(r, 420));
-
-        intro.finish();
-        settlePage();
-
-        // 2. The cobalt screen becomes the hero's portrait card.
-        const target = document.querySelector<HTMLElement>("[data-intro-target]")?.getBoundingClientRect();
-        const fits = target && target.width > 0 && target.bottom > 0 && target.top < innerHeight;
-        if (fits) {
-          const inset = `inset(${target.top}px ${innerWidth - target.right}px ${innerHeight - target.bottom}px ${target.left}px round 28px)`;
-          await animate(root, { clipPath: ["inset(0px 0px 0px 0px round 0px)", inset] }, { duration: 1, ease: [0.65, 0, 0.25, 1] });
-          await animate(root, { opacity: 0 }, { duration: 0.35 });
-        } else {
-          await animate(root, { clipPath: ["inset(0% 0% 0% 0% round 0px)", "inset(0% 0% 100% 0% round 0px)"] }, { duration: 0.9, ease: EASE_IN_OUT });
-        }
+        await animate(root, { clipPath: ["inset(0% 0% 0% 0% round 0px)", "inset(0% 0% 100% 0% round 0px)"] }, { duration: 0.9, ease: EASE_IN_OUT });
       }
       html.classList.remove("intro-lock");
       setPhase("gone");
@@ -203,7 +224,7 @@ export function IntroLoader() {
       cancelAnimationFrame(raf);
       html.classList.remove("intro-lock", "intro-hold");
     };
-  }, [shown, seen]);
+  }, [shown, assembly, fill, seen]);
 
   if (seen || phase === "gone") return null;
 
@@ -214,267 +235,206 @@ export function IntroLoader() {
       role="status"
       aria-live="polite"
       aria-label={status}
-      className="fixed inset-0 z-[100] overflow-hidden bg-accent-fill text-white"
+      className="fixed inset-0 z-[100] overflow-hidden"
+      style={{ background: NAVY }}
     >
-      <BlueprintLines />
+      <Streaks />
+      <Glow progress={shown} locked={phase !== "loading"} />
 
-      <div ref={contentRef} className="relative flex h-full flex-col p-5 sm:p-8 lg:p-10">
-        <div className="flex items-center justify-between overflow-hidden text-sm">
-          <Rise data-out delay={0.05} className="flex items-center gap-2 font-medium">
-            <span className="grid size-8 place-items-center rounded-full bg-white text-[0.75rem] font-semibold text-accent-fill">HA</span>
-            Hafidz Asmar Meisanda
-          </Rise>
-          <Rise data-out delay={0.12} className="opacity-85">
-            Portfolio — 2026
-          </Rise>
-        </div>
-
-        <div className="grid min-h-0 flex-1 place-items-center py-4">
-          <Stage progress={shown} />
-        </div>
-
-        <div className="flex items-end justify-between gap-6">
-          <div>
-            <div className="overflow-hidden">
-              <div data-out className="flex items-baseline gap-[0.3em] font-display text-[clamp(1.6rem,4vw,3rem)] leading-none">
-                <span className="text-white/65">I</span>
-                <WordCycle words={["design.", "build.", "ship."]} />
-              </div>
-            </div>
-            <div className="mt-2 overflow-hidden">
-              <motion.p
-                data-out
-                key={status}
-                initial={{ y: "100%", opacity: 0 }}
-                animate={{ y: "0%", opacity: 0.85 }}
-                transition={{ duration: 0.4, ease: EASE_OUT }}
-                className="text-sm"
-              >
-                {status}
-              </motion.p>
-            </div>
+      <div className="absolute inset-0 grid place-items-center">
+        <div className="relative w-[min(58vw,40svh,340px)]">
+          <div ref={markRef}>
+            <Mark progress={shown} assembly={assembly} fill={fill} sweep={phase !== "loading"} />
           </div>
-          <div className="overflow-hidden">
-            <div data-out className="flex items-start">
-              <Odometer value={shown} />
-              <span className="mt-[0.4em] font-display text-[clamp(1rem,2.4vw,1.75rem)] leading-none">%</span>
-            </div>
+          {/* Hangs below the mark so the mark itself stays dead centre */}
+          <div className="absolute inset-x-0 top-full mt-[clamp(2.75rem,8svh,4.5rem)]">
+            <Progress value={shown} done={phase !== "loading"} />
           </div>
-        </div>
-
-        <div className="mt-5 h-0.5 overflow-hidden rounded-full bg-white/20" data-out>
-          <motion.div style={{ width: bar }} className="h-full rounded-full bg-white" />
         </div>
       </div>
+
+      {/* Opens on exit, then shrinks into the hero card */}
+      <div ref={floodRef} className="absolute inset-0 bg-accent-fill" style={{ clipPath: "circle(0px at 50% 50%)" }} />
     </div>
   );
 }
 
-/* ─────────────────────────── Motion graphic ─────────────────────────── */
+/* ─────────────────────────── The mark ─────────────────────────── */
 
-const CHIPS = [
-  { label: "React", x: "4%", y: "16%", d: 0.55 },
-  { label: "Next.js", x: "74%", y: "8%", d: 0.65 },
-  { label: "Express", x: "82%", y: "66%", d: 0.75 },
-  { label: "PostgreSQL", x: "-2%", y: "74%", d: 0.85 },
-];
+/**
+ * Where each piece waits while loading, in viewBox units: pushed out along
+ * its own slash, so assembling reads as the letterforms sliding into place.
+ */
+const SCATTER: Record<LogoPiece, { x: number; y: number; rotate: number; order: number }> = {
+  stem: { x: -150, y: 30, rotate: -8, order: 0 },
+  ribbon: { x: 120, y: -140, rotate: 6, order: 1 },
+  wedge: { x: -130, y: 150, rotate: -10, order: 2 },
+  leg: { x: 150, y: 120, rotate: 9, order: 3 },
+};
 
-/** Blob + monogram in the middle, orbit rings around it, stack chips floating outside. */
-function Stage({ progress }: { progress: MotionValue<number> }) {
-  const p = useTransform(progress, (v) => v / 100);
-  // A dot riding the head of the progress ring.
-  const angle = useTransform(p, (t) => (t * 360 - 90) * (Math.PI / 180));
-  const dotX = useTransform(angle, (a) => 50 + 40 * Math.cos(a));
-  const dotY = useTransform(angle, (a) => 50 + 40 * Math.sin(a));
+/** Light-on-navy palette, the "gradient for dark" logo. */
+const STOPS = {
+  ribbon: ["#f4f7ff", "#4e96ff", "#b2d2ff"],
+  leg: ["#ebf2ff", "#a8caff", "#3670ff"],
+} as const;
+const SOLID = "#f4f7ff";
+const OUTLINE = "#8fb4ff";
+
+function Mark({
+  progress,
+  assembly,
+  fill,
+  sweep,
+}: {
+  progress: MotionValue<number>;
+  assembly: MotionValue<number>;
+  fill: MotionValue<number>;
+  sweep: boolean;
+}) {
+  const id = useId().replace(/:/g, "");
+  const pieces = Object.keys(LOGO_PIECES) as LogoPiece[];
 
   return (
-    <div data-stage className="relative aspect-square w-[min(78vw,52svh,480px)]">
-      {/* shockwave used on exit */}
-      <div data-burst className="pointer-events-none absolute inset-[30%] rounded-full border-2 border-white opacity-0" />
-
-      {/* orbit rings — each spinning ring is its own HTML layer, so it rotates about its centre */}
-      <div data-rings className="absolute inset-0">
-        <motion.div
-          className="absolute inset-0"
-          initial={{ rotate: -90, scale: 0.6, opacity: 0 }}
-          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-          transition={{ duration: 1.2, delay: 0.2, ease: EASE_OUT }}
-        >
-          <motion.svg
-            viewBox="0 0 100 100"
-            className="absolute inset-0 size-full overflow-visible"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-          >
-            <circle cx="50" cy="50" r="48" fill="none" stroke="rgb(255 255 255 / 0.35)" strokeWidth="0.35" strokeDasharray="0.6 2.4" />
-          </motion.svg>
-
-          <svg viewBox="0 0 100 100" className="absolute inset-0 size-full overflow-visible">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="rgb(255 255 255 / 0.16)" strokeWidth="0.8" />
-            <motion.circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke="white"
-              strokeWidth="0.8"
-              strokeLinecap="round"
-              transform="rotate(-90 50 50)"
-              style={{ pathLength: p }}
-            />
-            <motion.circle cx={dotX} cy={dotY} r="1.6" fill="white" />
-          </svg>
-
-          <motion.svg
-            viewBox="0 0 100 100"
-            className="absolute inset-0 size-full overflow-visible"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-          >
-            <circle cx="50" cy="50" r="33" fill="none" stroke="rgb(255 255 255 / 0.5)" strokeWidth="0.35" strokeDasharray="150 57" />
-          </motion.svg>
-        </motion.div>
-      </div>
-
-      {/* liquid blob with the monogram */}
-      <div data-blob className="absolute inset-[27%]">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 140, damping: 14, delay: 0.35 }}
-          className="relative size-full"
-        >
-          <motion.div
-            aria-hidden
-            animate={{
-              borderRadius: [
-                "42% 58% 70% 30% / 45% 45% 55% 55%",
-                "70% 30% 46% 54% / 30% 29% 71% 70%",
-                "50% 50% 34% 66% / 56% 68% 32% 44%",
-                "42% 58% 70% 30% / 45% 45% 55% 55%",
-              ],
-              rotate: [0, 120, 240, 360],
-              scale: [1, 1.04, 0.97, 1],
-            }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,#ffffff_0%,#dfe6ff_45%,#b7c6ff_100%)] shadow-[0_30px_80px_-20px_rgb(0_0_0/0.45),inset_0_-12px_30px_rgb(49_80_240/0.25)]"
-          />
-          <div className="absolute inset-0 grid place-items-center overflow-hidden">
-            <span className="flex font-display text-[clamp(2.5rem,9vmin,5.5rem)] leading-none text-accent-fill">
-              {["H", "A"].map((ch, i) => (
-                <motion.span
-                  key={ch}
-                  initial={{ y: "110%", rotate: 12, opacity: 0 }}
-                  animate={{ y: "0%", rotate: 0, opacity: 1 }}
-                  transition={{ duration: 0.9, delay: 0.7 + i * 0.08, ease: EASE_OUT }}
-                  className="inline-block"
-                >
-                  {ch}
-                </motion.span>
-              ))}
-            </span>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* stack chips orbiting outside the rings */}
-      {CHIPS.map((c, i) => (
-        <div key={c.label} data-pill className="absolute" style={{ left: c.x, top: c.y }}>
-          <motion.span
-            initial={{ opacity: 0, scale: 0.4, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
-            transition={{
-              opacity: { duration: 0.5, delay: c.d },
-              scale: { type: "spring", stiffness: 200, damping: 15, delay: c.d },
-              y: { duration: 3 + i * 0.4, repeat: Infinity, ease: "easeInOut", delay: c.d },
-            }}
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/12 px-3 py-1.5 text-[0.75rem] font-medium ring-1 ring-white/25 backdrop-blur-sm sm:text-sm"
-          >
-            <span className="size-1.5 rounded-full bg-white" />
-            {c.label}
-          </motion.span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Thin grid lines that draw across the screen, like a layout being set up. */
-function BlueprintLines() {
-  const v = [16.66, 50, 83.33];
-  const h = [22, 78];
-  return (
-    <div data-lines aria-hidden className="pointer-events-none absolute inset-0">
-      {v.map((x, i) => (
-        <motion.span
-          key={`v${x}`}
-          initial={{ scaleY: 0 }}
-          animate={{ scaleY: 1 }}
-          transition={{ duration: 1.1, delay: 0.05 * i, ease: EASE_IN_OUT }}
-          className="absolute inset-y-0 w-px origin-top bg-white/10"
-          style={{ left: `${x}%` }}
-        />
-      ))}
-      {h.map((y, i) => (
-        <motion.span
-          key={`h${y}`}
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 1.1, delay: 0.15 + 0.05 * i, ease: EASE_IN_OUT }}
-          className="absolute inset-x-0 h-px origin-left bg-white/10"
-          style={{ top: `${y}%` }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/** Words that roll vertically, holding on each one. */
-function WordCycle({ words }: { words: string[] }) {
-  const list = [...words, words[0]];
-  const n = words.length;
-  const y: string[] = [];
-  const times: number[] = [];
-  for (let i = 0; i < n; i++) {
-    y.push(`${(-i * 100) / list.length}%`, `${(-i * 100) / list.length}%`);
-    times.push(i / n, i / n + 0.75 / n);
-  }
-  y.push(`${(-n * 100) / list.length}%`);
-  times.push(1);
-  return (
-    <span className="relative inline-block h-[1.05em] overflow-hidden align-bottom">
-      <motion.span
-        animate={{ y }}
-        transition={{ duration: n * 0.9, times, repeat: Infinity, ease: EASE_IN_OUT }}
-        className="flex flex-col"
-      >
-        {list.map((w, i) => (
-          <span key={i} className="block h-[1.05em] leading-[1.05]">
-            {w}
-          </span>
+    <motion.svg
+      viewBox={LOGO_VIEWBOX}
+      className="w-full overflow-visible"
+      aria-hidden
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <defs>
+        {(["ribbon", "leg"] as const).map((g) => (
+          <linearGradient key={g} id={`${id}-${g}`} gradientUnits="userSpaceOnUse" {...LOGO_AXES[g]}>
+            <stop offset="0" stopColor={STOPS[g][0]} />
+            <stop offset="0.45" stopColor={STOPS[g][1]} />
+            <stop offset="1" stopColor={STOPS[g][2]} />
+          </linearGradient>
         ))}
-      </motion.span>
-    </span>
+        <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+        <clipPath id={`${id}-clip`}>
+          {pieces.map((p) => (
+            <path key={p} d={LOGO_PIECES[p]} />
+          ))}
+        </clipPath>
+      </defs>
+
+      {pieces.map((p) => (
+        <Piece
+          key={p}
+          piece={p}
+          progress={progress}
+          assembly={assembly}
+          fill={fill}
+          paint={p === "ribbon" || p === "leg" ? `url(#${id}-${p})` : SOLID}
+        />
+      ))}
+
+      {/* A highlight that runs across the finished mark, slanted like its slashes */}
+      <g clipPath={`url(#${id}-clip)`}>
+        {/* skew on a wrapper: motion's x would replace a transform attribute on the rect */}
+        <g transform="skewX(-40)">
+          <motion.rect
+            y="200"
+            width="240"
+            height="640"
+            fill={`url(#${id}-sheen)`}
+            initial={{ x: -120 }}
+            animate={sweep ? { x: 1700 } : undefined}
+            transition={{ duration: 1.1, delay: 0.25, ease: [0.45, 0, 0.2, 1] }}
+          />
+        </g>
+      </g>
+    </motion.svg>
   );
 }
 
-/** Text that slides up from behind its line as the loader opens. */
-function Rise({
-  children,
-  delay = 0,
-  className = "",
-  ...rest
-}: { children: React.ReactNode; delay?: number; className?: string } & Record<`data-${string}`, unknown>) {
+function Piece({
+  piece,
+  progress,
+  assembly,
+  fill,
+  paint,
+}: {
+  piece: LogoPiece;
+  progress: MotionValue<number>;
+  assembly: MotionValue<number>;
+  fill: MotionValue<number>;
+  paint: string;
+}) {
+  const s = SCATTER[piece];
+  const x = useTransform(assembly, (a) => (1 - a) * s.x);
+  const y = useTransform(assembly, (a) => (1 - a) * s.y);
+  const rotate = useTransform(assembly, (a) => (1 - a) * s.rotate);
+  // Outlines trace one after another as loading climbs.
+  const draw = useTransform(progress, (v) => clamp((v / 100 - s.order * 0.1) / 0.7));
+  // Fills land in the same order, overlapping.
+  const solid = useTransform(fill, (f) => clamp(f * 1.6 - s.order * 0.2));
+  const outline = useTransform(solid, (o) => 1 - o);
+
   return (
-    <motion.span
-      {...rest}
-      initial={{ y: "110%", opacity: 0 }}
-      animate={{ y: "0%", opacity: 1 }}
-      transition={{ duration: 0.9, delay, ease: EASE_OUT }}
-      className={`inline-block ${className}`}
+    <motion.g style={{ x, y, rotate }}>
+      <motion.path d={LOGO_PIECES[piece]} fill={paint} style={{ opacity: solid }} />
+      <motion.path
+        d={LOGO_PIECES[piece]}
+        fill="none"
+        stroke={OUTLINE}
+        strokeWidth={5}
+        strokeLinejoin="round"
+        style={{ pathLength: draw, opacity: outline }}
+      />
+    </motion.g>
+  );
+}
+
+/* ─────────────────────────── Progress ─────────────────────────── */
+
+/**
+ * A hairline bar with a glowing head, and the percentage riding along on top
+ * of the head as a rolling counter. Once loading is done it holds on 100 for
+ * a beat, then steps aside so the mark finishes alone.
+ */
+function Progress({ value, done }: { value: MotionValue<number>; done: boolean }) {
+  const scaleX = useTransform(value, (v) => v / 100);
+  const head = useTransform(value, (v) => `${v}%`);
+  // Left-aligned at 0, right-aligned at 100: the label never hangs off the bar.
+  const shift = useTransform(value, (v) => `${-v}%`);
+
+  return (
+    <motion.div
+      aria-hidden
+      initial={{ opacity: 0, y: 12 }}
+      animate={done ? { opacity: 0, y: 10, filter: "blur(4px)" } : { opacity: 1, y: 0 }}
+      transition={done ? { duration: 0.4, delay: 0.45, ease: EASE_IN } : { duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="relative"
     >
-      {children}
-    </motion.span>
+      <motion.div style={{ left: head, x: shift }} className="absolute bottom-full mb-3 flex items-start text-[#dce8ff]">
+        <Odometer value={value} />
+        <span className="ml-0.5 mt-[0.1em] font-mono text-[0.7rem] leading-none text-[#8fb4ff]">%</span>
+      </motion.div>
+
+      <div className="relative h-0.5 rounded-full bg-white/12">
+        <motion.div
+          style={{ scaleX, background: "linear-gradient(90deg, rgb(143 180 255 / 0.15), #8fb4ff 60%, #ffffff)" }}
+          className="absolute inset-0 origin-left rounded-full"
+        />
+        <motion.span
+          style={{ left: head }}
+          className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_10px_2px_rgb(111_160_255/0.9),0_0_28px_6px_rgb(31_91_255/0.6)]"
+        />
+      </div>
+
+      {/* quarter ticks, like a gauge */}
+      <div className="mt-2 flex justify-between px-px">
+        {[0, 25, 50, 75, 100].map((t) => (
+          <span key={t} className="h-1 w-px bg-white/20" />
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
@@ -483,13 +443,12 @@ function Rise({
  * and each wheel to its left only turns while the one beside it passes 9 → 0.
  */
 function Odometer({ value }: { value: MotionValue<number> }) {
-  // Continuous count of how far each wheel has turned.
   const carry = (v: number, unit: number) => Math.floor(v / unit) + Math.max(0, (v % unit) - (unit - 1));
   const ones = useTransform(value, (v) => v);
   const tens = useTransform(value, (v) => carry(v, 10));
   const hundreds = useTransform(value, (v) => carry(v, 100));
   return (
-    <span aria-hidden className="flex font-display text-[clamp(3.5rem,11vw,8rem)] leading-none tabular-nums">
+    <span className="flex font-mono text-[clamp(1.1rem,2.6vw,1.4rem)] font-medium leading-none tabular-nums">
       <Wheel turns={hundreds} />
       <Wheel turns={tens} />
       <Wheel turns={ones} />
@@ -503,7 +462,7 @@ const WHEEL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 function Wheel({ turns }: { turns: MotionValue<number> }) {
   const y = useTransform(turns, (t) => `${(-(t % 10) * 100) / WHEEL.length}%`);
   return (
-    <span className="relative inline-block h-[1em] overflow-hidden [mask-image:linear-gradient(transparent,#000_14%,#000_86%,transparent)]">
+    <span className="relative inline-block h-[1em] overflow-hidden [mask-image:linear-gradient(transparent,#000_20%,#000_80%,transparent)]">
       <motion.span style={{ y }} className="flex flex-col">
         {WHEEL.map((n, i) => (
           <span key={i} className="block h-[1em] leading-none">
@@ -514,6 +473,52 @@ function Wheel({ turns }: { turns: MotionValue<number> }) {
     </span>
   );
 }
+
+/* ─────────────────────────── Atmosphere ─────────────────────────── */
+
+/** A soft blue light behind the mark that grows with progress and pulses on lock. */
+function Glow({ progress, locked }: { progress: MotionValue<number>; locked: boolean }) {
+  const opacity = useTransform(progress, [0, 100], [0.25, 0.7]);
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 grid place-items-center">
+      <motion.div
+        style={{ opacity, background: "radial-gradient(circle closest-side, rgb(31 91 255 / 0.9) 0%, rgb(31 91 255 / 0.35) 45%, transparent 100%)" }}
+        animate={locked ? { scale: [1, 1.35, 1.15] } : { scale: [1, 1.08, 1] }}
+        transition={locked ? { duration: 1.1, ease: [0.16, 1, 0.3, 1] } : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+        className="aspect-square w-[min(120vw,110svh)] rounded-full"
+      />
+    </div>
+  );
+}
+
+/** Thin light streaks running along the mark's slash angle. */
+const STREAKS = [
+  { top: "18%", delay: 0.2, duration: 2.6 },
+  { top: "46%", delay: 0.9, duration: 3.2 },
+  { top: "71%", delay: 0.5, duration: 2.9 },
+];
+
+function Streaks() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 opacity-70">
+      <div className="absolute left-1/2 top-1/2 h-[160vmax] w-[160vmax] -translate-x-1/2 -translate-y-1/2 rotate-[-49deg]">
+        {STREAKS.map((s) => (
+          <motion.span
+            key={s.top}
+            className="absolute left-0 h-px w-[30%]"
+            style={{ top: s.top, background: "linear-gradient(90deg, transparent, rgb(143 180 255 / 0.55), transparent)" }}
+            initial={{ x: "-100%" }}
+            animate={{ x: "440%" }}
+            transition={{ duration: s.duration, delay: s.delay, repeat: Infinity, repeatDelay: 0.4, ease: [0.45, 0, 0.55, 1] }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const clamp = (v: number) => Math.min(1, Math.max(0, v));
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function load(src: string) {
   return new Promise<void>((resolve) => {

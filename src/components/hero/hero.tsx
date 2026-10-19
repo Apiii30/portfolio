@@ -14,6 +14,7 @@ import { useRef, useState } from "react";
 import { useMedia } from "@/lib/use-media";
 import { LiquidGlass } from "@/components/liquid-glass";
 import { LocalTime } from "@/components/local-time";
+import { Logo } from "@/components/logo";
 import { Magnetic } from "@/components/magnetic";
 import { LiquidPortrait } from "@/components/hero/liquid-portrait";
 import { MorphText } from "@/components/hero/morph-text";
@@ -152,12 +153,7 @@ export function Hero() {
               style={{ y: discY }}
               className="absolute left-1/2 top-[6%] aspect-square w-[78%] -translate-x-1/2 rounded-full bg-white/12 ring-1 ring-white/20"
             />
-            <span
-              aria-hidden
-              className="absolute bottom-3 right-5 font-display text-[clamp(4rem,9vw,8rem)] leading-none text-white/12"
-            >
-              HA
-            </span>
+            <Logo tone="mono" className="absolute bottom-5 right-5 w-[clamp(5rem,11vw,9rem)] text-white/12" />
           </div>
 
           {/* Clip only the bottom and sides, so the head can rise above the card */}

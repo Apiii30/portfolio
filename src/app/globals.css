@@ -24,6 +24,14 @@
   --glass-tint: rgb(255 255 255 / 0.55);
   --glass-edge: rgb(255 255 255 / 0.95);
   --glass-shadow: rgb(15 20 45 / 0.12);
+  /* HA mark (see Logo), from public/logo "gradient for light" */
+  --logo-solid: #0b1736;
+  --logo-ribbon-0: #0b1736;
+  --logo-ribbon-1: #1f5bff;
+  --logo-ribbon-2: #3b88ff;
+  --logo-leg-0: #0d1e49;
+  --logo-leg-1: #1b4dd6;
+  --logo-leg-2: #3b88ff;
   color-scheme: light;
 }
 
@@ -42,6 +50,14 @@
   --glass-tint: rgb(24 24 30 / 0.5);
   --glass-edge: rgb(255 255 255 / 0.14);
   --glass-shadow: rgb(0 0 0 / 0.45);
+  /* HA mark, "gradient for dark" */
+  --logo-solid: #f4f7ff;
+  --logo-ribbon-0: #f4f7ff;
+  --logo-ribbon-1: #4e96ff;
+  --logo-ribbon-2: #b2d2ff;
+  --logo-leg-0: #ebf2ff;
+  --logo-leg-1: #a8caff;
+  --logo-leg-2: #3670ff;
   color-scheme: dark;
 }
 
@@ -115,6 +131,26 @@ body {
 .intro-hold header {
   transform: translateY(-120%);
   opacity: 0;
+}
+
+/* HA mark: on hover the pieces ease apart along their own slashes, the
+   reverse of how the intro loader puts them together. */
+.logo-mark path {
+  transition: transform 0.5s var(--ease-out-expo);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .group:hover .logo-hover [data-piece="stem"] {
+    transform: translate(-40px, 0);
+  }
+  .group:hover .logo-hover [data-piece="ribbon"] {
+    transform: translate(46px, -50px);
+  }
+  .group:hover .logo-hover [data-piece="wedge"] {
+    transform: translate(-46px, 50px);
+  }
+  .group:hover .logo-hover [data-piece="leg"] {
+    transform: translate(38px, 60px);
+  }
 }
 
 /* Contribution graph cells (see ContributionGraph) */

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CurtainLink } from "@/components/curtain";
 import { LiquidGlass } from "@/components/liquid-glass";
+import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { nav } from "@/lib/site";
 import { useActiveSection } from "@/lib/use-active-section";
@@ -48,13 +49,11 @@ export function Nav() {
           <CurtainLink
             href="/"
             label="Hafidz Asmar Meisanda"
-            className="flex items-center gap-2.5 pr-3"
+            className="group flex items-center gap-2 pr-3"
             aria-label="Hafidz Asmar Meisanda — home"
           >
-            <span
-              className={`grid size-11 place-items-center rounded-full text-[0.8rem] font-semibold transition-colors duration-500 ${onAccent ? "bg-white text-accent-fill" : "bg-ink text-bg"}`}
-            >
-              HA
+            <span className="grid size-11 place-items-center">
+              <Logo hover tone={onAccent ? "mono" : "brand"} className="w-9 overflow-visible text-white" />
             </span>
             <span className="relative hidden h-5 w-28 overflow-hidden text-[0.95rem] font-semibold sm:block">
               <AnimatePresence mode="popLayout" initial={false}>
