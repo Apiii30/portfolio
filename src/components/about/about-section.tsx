@@ -13,7 +13,7 @@ const facts = [
   { label: "Studying", value: "D3 Informatics Mgmt." },
   { label: "Running", value: "Webkeun.id" },
   // Shown to visitors, kept out of search snippets (data-nosnippet).
-  { label: "Looking for", value: "An internship", private: true },
+  { label: "Looking for", value: "Full-stack internship", private: true },
 ] as const;
 
 export function AboutSection() {

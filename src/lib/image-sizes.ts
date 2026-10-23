@@ -1,6 +1,12 @@
 // Intrinsic sizes of images in /public, so next/image never guesses an aspect ratio.
 // Regenerate when images change.
 export const imageSizes: Record<string, readonly [number, number]> = {
+  "/work/mylife/bahasa-indonesia.webp": [2000, 1125],
+  "/work/mylife/dark-mode.webp": [2000, 1125],
+  "/work/mylife/features.webp": [2000, 1125],
+  "/work/mylife/goals.webp": [2000, 1125],
+  "/work/mylife/landing-desktop.webp": [2000, 1125],
+  "/work/mylife/landing-mobile.webp": [900, 1777],
   "/work/oyg/admin-dashboard.webp": [1365, 643],
   "/work/oyg/enrollment-checklist.webp": [522, 638],
   "/work/oyg/event-detail.webp": [1350, 640],

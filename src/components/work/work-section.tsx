@@ -28,7 +28,7 @@ export function WorkSection() {
         </div>
         <Reveal delay={0.15} className="lg:col-span-4 lg:pb-3">
           <p className="max-w-[38ch] text-lg leading-snug text-ink-soft">
-            Two are live on webkeun.id. One is waiting for its launch day at a marine conservation NGO.
+            Three are live, two on webkeun.id. One is waiting for its launch day at a marine conservation NGO.
           </p>
         </Reveal>
       </div>

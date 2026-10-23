@@ -111,27 +111,20 @@ export function IntroLoader() {
     track(load("/images/hafidz-casual-cutout.webp"));
     track(load("/images/hafidz-formal-cutout.webp"));
 
-    // Every image the page shows, fetched while the loader plays. Lazy images
-    // are switched to eager rather than fetched by URL, so the browser picks
-    // the same srcset size it would on scroll and nothing downloads twice.
-    // Watched rather than listed once: sections that swap layout after
-    // hydration (desktop vs phone) replace their <img>s, and a replaced
-    // image no longer has anything to wait for.
+    // Every image the page shows, fetched while the loader plays. Each <img>
+    // is copied (same srcset and sizes) rather than fetched by URL, so the
+    // browser picks the size it will show and the real lazy image later loads
+    // from cache. The page's own <img>s are never touched: React hydrates some
+    // sections after this runs, and a changed attribute is a hydration error.
+    // Watched rather than listed once, for sections that render their <img>s
+    // after hydration (desktop vs phone layouts).
     const tracked = new WeakSet<HTMLImageElement>();
-    const pending = new Map<HTMLImageElement, () => void>();
     const scan = () => {
       main?.querySelectorAll("img").forEach((img) => {
         if (tracked.has(img)) return;
         tracked.add(img);
-        if (img.loading === "lazy") img.loading = "eager";
-        track(
-          new Promise<void>((resolve) => {
-            pending.set(img, resolve);
-            settle(img).then(resolve);
-          }).finally(() => pending.delete(img)),
-        );
+        track(prefetch(img));
       });
-      for (const [img, resolve] of pending) if (!img.isConnected) resolve();
     };
     scan();
     const watcher = new MutationObserver(scan);
@@ -551,16 +544,18 @@ function Streaks() {
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Resolves once a page <img> has loaded (or failed) and is decoded, so it paints without a hitch. */
-function settle(img: HTMLImageElement) {
-  const loaded =
-    img.complete
-      ? Promise.resolve()
-      : new Promise<void>((resolve) => {
-          img.addEventListener("load", () => resolve(), { once: true });
-          img.addEventListener("error", () => resolve(), { once: true });
-        });
-  return loaded.then(() => img.decode().catch(() => {}));
+/**
+ * Downloads and decodes what a page <img> will show, through a detached copy
+ * with the same srcset and sizes. Resolves on load or failure.
+ */
+function prefetch(img: HTMLImageElement) {
+  const copy = new Image();
+  copy.decoding = "async";
+  // sizes and srcset before src, so the first request is already the right candidate.
+  if (img.sizes) copy.sizes = img.sizes;
+  if (img.srcset) copy.srcset = img.srcset;
+  copy.src = img.src;
+  return copy.decode().catch(() => {});
 }
 
 function load(src: string) {

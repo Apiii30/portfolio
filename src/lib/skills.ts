@@ -70,6 +70,7 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
       { name: "JavaScript", icon: siJavascript },
       { name: "HTML", icon: siHtml5 },
       { name: "CSS", icon: siCss },
+      { name: "Responsive design" },
     ],
   },
   {
@@ -87,6 +88,7 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
       { name: "REST API design & development" },
       { name: "Backend architecture" },
       { name: "JWT authentication", icon: siJsonwebtokens },
+      { name: "Row-Level Security (RLS)" },
       { name: "Sequelize", icon: siSequelize },
       { name: "Python", icon: siPython },
       { name: "PHP", icon: siPhp },
@@ -106,8 +108,14 @@ export const foundations: readonly { title: string; skills: readonly Skill[] }[]
     ],
   },
   {
-    title: "Design tools",
-    skills: [{ name: "Figma", icon: siFigma }, { name: "Canva" }],
+    title: "Design & office",
+    skills: [
+      { name: "Figma", icon: siFigma },
+      { name: "Canva" },
+      { name: "Microsoft Word" },
+      { name: "Excel" },
+      { name: "PowerPoint" },
+    ],
   },
 ];
 

@@ -37,33 +37,46 @@ const sides = [
 ] as const;
 
 const ease = [0.16, 1, 0.3, 1] as const;
+/** Same as the `pin` variant in globals.css. */
+const PIN_QUERY = "(min-width: 1024px) and (min-height: 580px)";
 const card = "rounded-[28px] bg-surface ring-1 ring-line";
 
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const ready = useIntroDone();
-  // Desktop pins the hero for one screen and morphs while pinned. Phones vary too
-  // much in height to fit both cards in one screen, so there the hero scrolls
-  // normally and the morph follows the portrait card through the viewport.
+  // Desktop pins the hero for one screen and morphs while pinned; short desktop
+  // screens (under 720px) keep the pin with tighter spacing (the `compact`
+  // variant). Only a desktop window too short for even that, and phones, let
+  // the hero scroll normally, with the morph following the scroll through it.
   const wide = useMedia("(min-width: 1024px)");
+  const pinned = useMedia(PIN_QUERY);
   const portraitRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.4 });
-  const { scrollYProgress: cardProgress } = useScroll({ target: portraitRef, offset: ["start end", "end start"] });
+  // 0 once the whole portrait card is on screen, 1 when its top reaches the top of the screen.
+  const { scrollYProgress: cardProgress } = useScroll({ target: portraitRef, offset: ["end end", "start start"] });
   const cardSmooth = useSpring(cardProgress, { stiffness: 120, damping: 24, mass: 0.4 });
+  const { scrollY } = useScroll();
+  const scrollSmooth = useSpring(scrollY, { stiffness: 120, damping: 24, mass: 0.4 });
 
-  const morphDesktop = useTransform(smooth, [0.1, 0.65], [0, 1], { clamp: true });
-  const morphMobile = useTransform(cardSmooth, [0.42, 0.72], [0, 1], { clamp: true });
+  const morphPinned = useTransform(smooth, [0.1, 0.65], [0, 1], { clamp: true });
+  // Short desktop: the portrait starts at the top of the page and is taller
+  // than the screen, so morph over the first stretch of scroll, while the face
+  // is still in view.
+  const morphShort = useTransform(scrollSmooth, [20, 200], [0, 1], { clamp: true });
+  // Phone: the portrait sits below the intro, so morph while the whole card is in view.
+  const morphMobile = useTransform(cardSmooth, [0.1, 0.7], [0, 1], { clamp: true });
   const morph = useMotionValue(0);
-  useMotionValueEvent(morphDesktop, "change", (v) => wide && morph.set(v));
+  useMotionValueEvent(morphPinned, "change", (v) => pinned && morph.set(v));
+  useMotionValueEvent(morphShort, "change", (v) => wide && !pinned && morph.set(v));
   useMotionValueEvent(morphMobile, "change", (v) => !wide && morph.set(v));
   const [side, setSide] = useState(0);
   useMotionValueEvent(morph, "change", (v) => setSide(v > 0.5 ? 1 : 0));
 
   // Parallax layers
   const k = reduce ? 0 : 1;
-  const kd = reduce || !wide ? 0 : 1; // desktop-only pin effects
+  const kd = reduce || !pinned ? 0 : 1; // pin-only effects
   const nameX = useTransform(smooth, [0, 1], ["0%", `${-4 * k}%`]);
   // The figure sinks into the card as you scroll, so its cut-off bottom edge stays hidden.
   const personY = useTransform(smooth, [0, 1], ["0%", `${7 * k}%`]);
@@ -75,17 +88,17 @@ export function Hero() {
   const progressWidth = useTransform(morph, (v) => `${v * 100}%`);
 
   return (
-    <section ref={ref} id="top" className="relative lg:h-[240vh]" aria-label="Introduction">
+    <section ref={ref} id="top" className="relative pin:h-[240vh]" aria-label="Introduction">
       <motion.div
         style={{ scale: exit, opacity: exitOpacity }}
-        className="mx-auto grid max-w-310 gap-3 px-3 pb-3 pt-22 sm:px-6 sm:pt-24 lg:sticky lg:top-0 lg:h-svh lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:gap-4 lg:pb-6"
+        className="mx-auto grid max-w-310 gap-3 px-3 pb-3 pt-22 sm:px-6 sm:pt-24 lg:grid-cols-12 lg:gap-4 lg:pb-6 pin:sticky pin:top-0 pin:h-svh pin:grid-rows-[minmax(0,1fr)_minmax(0,1fr)_auto] compact:gap-3 compact:pb-4 compact:pt-20"
       >
         {/* Intro */}
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={ready ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.9, ease }}
-          className={`${card} relative flex flex-col justify-between gap-4 overflow-hidden p-5 sm:gap-6 sm:p-8 lg:col-span-7 lg:row-span-2 lg:p-10`}
+          className={`${card} relative flex flex-col justify-between gap-4 overflow-hidden p-5 sm:gap-6 sm:p-8 lg:col-span-7 lg:row-span-2 lg:p-10 compact:gap-3 compact:p-7`}
         >
           <div className="flex flex-wrap items-center gap-2">
             {/* Job-seeking status is for visitors, not for search snippets */}
@@ -99,7 +112,7 @@ export function Hero() {
           </div>
 
           <div>
-            <h1 className="font-display text-[min(13.5vw,6.6svh)] leading-[0.86] sm:text-[min(9.5vw,8.5svh)] lg:text-[min(5.8vw,8.8svh)]">
+            <h1 className="font-display text-[min(13.5vw,6.6svh)] leading-[0.86] sm:text-[min(9.5vw,8.5svh)] lg:text-[min(5.4vw,4.75rem)] pin:text-[min(5.8vw,8.8svh)]">
               <span className="sr-only">{site.name}</span>
               <motion.span aria-hidden style={{ x: nameX }} className="block">
                 <Letters text="Hafidz" delay={0.15} play={ready} />
@@ -117,14 +130,15 @@ export function Hero() {
               initial={reduce ? false : { opacity: 0, y: 10 }}
               animate={ready ? { opacity: 1, y: 0 } : undefined}
               transition={{ duration: 0.8, delay: 0.5, ease }}
-              className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mt-5"
+              className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mt-5 compact:mt-3"
             >
               <span className="font-display text-[clamp(1.35rem,2.4vw,2rem)] leading-none">Full-stack Developer</span>
               <span className="text-[0.95rem] text-ink-soft sm:text-base"><span className="hidden sm:inline">· </span>Founder of Webkeun.id</span>
             </motion.p>
 
-            <div className="mt-4 grid gap-4 sm:mt-8 sm:gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
-              <div className="max-w-[44ch] lg:[@media(max-height:780px)]:hidden">
+            <div className="mt-4 grid gap-4 sm:mt-8 sm:gap-5 lg:grid-cols-[1fr_auto] lg:items-end compact:mt-5">
+              {/* Only a pinned hero is short of room for this; a flowing one always shows it */}
+              <div className="max-w-[44ch] pin:[@media(max-height:780px)]:hidden">
                 <p className="text-[0.85rem] font-semibold text-accent">
                   <MorphText variants={sides.map((s) => s.kicker)} active={side} />
                 </p>
@@ -193,11 +207,11 @@ export function Hero() {
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={ready ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.9, delay: 0.25, ease }}
-          className={`${card} hidden flex-col justify-between gap-3 p-6 lg:col-span-3 lg:flex`}
+          className={`${card} hidden flex-col justify-between gap-3 p-6 lg:col-span-3 lg:flex compact:gap-2 compact:px-5 compact:py-4`}
         >
           <p className="text-[0.8rem] text-ink-faint">Based in</p>
           <div>
-            <p className="font-display text-2xl">Bandung, ID</p>
+            <p className="font-display text-2xl compact:text-xl">Bandung, ID</p>
             <p className="mt-1 font-mono text-xs text-ink-soft">
               {site.coords} · <LocalTime />
             </p>
@@ -211,7 +225,7 @@ export function Hero() {
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={ready ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.9, delay: 0.32, ease }}
-          className={`${card} group hidden flex-col justify-between gap-3 overflow-hidden p-6 transition-colors hover:bg-surface-2 lg:col-span-4 lg:flex`}
+          className={`${card} group hidden flex-col justify-between gap-3 overflow-hidden p-6 transition-colors hover:bg-surface-2 lg:col-span-4 lg:flex compact:gap-2 compact:px-5 compact:py-4`}
         >
           <p className="flex items-center justify-between text-[0.8rem] text-ink-faint">
             <span className="flex items-center gap-2">
@@ -232,7 +246,7 @@ export function Hero() {
             </span>
           </p>
           <div>
-            <p className="font-display text-2xl">
+            <p className="font-display text-2xl compact:text-xl">
               <MorphText variants={sides.map((s) => s.now.title)} active={side} />
             </p>
             <p className="mt-1 text-sm text-ink-soft">

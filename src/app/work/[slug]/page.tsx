@@ -162,14 +162,16 @@ async function CaseStudy({ params }: { params: PageProps<"/work/[slug]">["params
             </ScrollSection>
           ))}
 
-          <section className="mt-32 border-t border-line pt-12">
-            <Reveal>
-              <p className="text-[0.85rem] font-medium text-accent">What I took away</p>
-              <blockquote className="mt-6 max-w-[30ch] font-display text-[clamp(1.6rem,3vw,2.75rem)] leading-[1.05]">
-                “{project.learned}”
-              </blockquote>
-            </Reveal>
-          </section>
+          {project.learned && (
+            <section className="mt-32 border-t border-line pt-12">
+              <Reveal>
+                <p className="text-[0.85rem] font-medium text-accent">What I took away</p>
+                <blockquote className="mt-6 max-w-[30ch] font-display text-[clamp(1.6rem,3vw,2.75rem)] leading-[1.05]">
+                  “{project.learned}”
+                </blockquote>
+              </Reveal>
+            </section>
+          )}
 
           <CurtainLink
             href={`/work/${next.slug}`}

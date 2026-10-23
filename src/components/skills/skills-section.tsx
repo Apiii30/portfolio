@@ -240,7 +240,7 @@ function Foundations() {
 
       <div
         onPointerLeave={() => setHot(null)}
-        className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1.15fr_1.7fr_1.25fr_0.9fr]"
+        className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1.1fr_1.6fr_1.15fr_1.1fr]"
       >
         {foundations.map((g, i) => {
           const on = hot === i;

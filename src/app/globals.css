@@ -1,6 +1,18 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* Desktop tall enough to pin the hero to one screen. Keep in sync with PIN_QUERY in hero.tsx. */
+@custom-variant pin {
+  @media (min-width: 64rem) and (min-height: 580px) {
+    @slot;
+  }
+}
+/* A pinned hero on a short desktop screen: same layout, tighter spacing. */
+@custom-variant compact {
+  @media (min-width: 64rem) and (min-height: 580px) and (max-height: 719.98px) {
+    @slot;
+  }
+}
 
 /*
  * Light bento. Cobalt accent = the denim jacket, turned up to full saturation.

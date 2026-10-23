@@ -29,7 +29,8 @@ export type Project = {
   accent: string;
   problem: string;
   sections: readonly { title: string; body: string; shots?: readonly Shot[] }[];
-  learned: string;
+  /** In his own words; the case study leaves the closing quote out when this is empty. */
+  learned?: string;
 };
 
 export const projects: readonly Project[] = [
@@ -37,7 +38,7 @@ export const projects: readonly Project[] = [
     slug: "webkeun-invitations",
     index: "01",
     title: "Webkeun Digital Invitations",
-    client: "Webkeun.id — my own product",
+    client: "Webkeun.id — my web development platform",
     year: "2026",
     role: "Founder · design, full-stack, deploy",
     summary:
@@ -159,8 +160,55 @@ export const projects: readonly Project[] = [
       "My first time building inside a team's codebase: working on Git branches, keeping the API and the UI in step, and testing routes in Postman before wiring them to a screen.",
   },
   {
-    slug: "webkeun-templates",
+    slug: "mylife",
     index: "03",
+    title: "MyLife",
+    client: "Personal project — life management web app",
+    year: "2026",
+    role: "Full-stack · Next.js front end, Express API",
+    summary:
+      "One account for the parts of a student's life that usually live in separate apps: money, tasks, calendar, journal, memories, goals and grades. In Bahasa Indonesia or English, light or dark.",
+    hook: "Money, tasks, memories and GPA in one calm space, and they work together.",
+    stack: ["Next.js", "Express"],
+    facts: [
+      { value: "7", label: "modules: finance, to-do, calendar, journal, memories, goals, grades" },
+      { value: "2", label: "languages, switchable anytime: Bahasa Indonesia and English" },
+      { value: "2", label: "themes, light and dark, on laptop, tablet and phone" },
+    ],
+    live: { label: "Open MyLife", href: "https://mylife-web-eta.vercel.app/" },
+    cover: {
+      src: "/work/mylife/landing-desktop.webp",
+      alt: "MyLife landing page: 'Your life, beautifully organized.' above a preview of the dashboard",
+      kind: "desktop",
+    },
+    preview: [{ src: "/work/mylife/landing-mobile.webp", alt: "MyLife landing page on a phone", kind: "mobile" }],
+    accent: "#5755d4",
+    problem:
+      "Money that comes and goes, tasks that keep piling up, moments worth keeping, goals worth chasing. Usually each of them lives in a different app, and none of those apps know about the others.",
+    sections: [
+      {
+        title: "Seven spaces, one account",
+        body: "Finance tracks income and expenses month by month. To-Do keeps work, college and errands in one list, and Calendar puts events next to task deadlines. Journal is for the day's story and mood, Memories keeps photos in albums, and Grades logs each semester's courses and works the GPA out for you.",
+        shots: [{ src: "/work/mylife/features.webp", alt: "MyLife features section: Finance with a monthly balance chart and a To-Do list", kind: "desktop", caption: "Features" }],
+      },
+      {
+        title: "Goals that are tied to the rest",
+        body: "A financial goal fills up as you save, and each saving is recorded in Finance automatically. A life goal, like graduating, breaks into steps you tick off one by one, with the progress shown as you go.",
+        shots: [{ src: "/work/mylife/goals.webp", alt: "Goals section: a MacBook savings goal at 68% and a graduation goal broken into steps", kind: "desktop", caption: "Goals" }],
+      },
+      {
+        title: "Indonesian or English, light or dark",
+        body: "Language and theme switch from the navbar at any time, and the layout works on a laptop, a tablet or a phone.",
+        shots: [
+          { src: "/work/mylife/bahasa-indonesia.webp", alt: "MyLife landing page in Bahasa Indonesia: 'Hidupmu, tertata indah.'", kind: "desktop", caption: "Bahasa Indonesia" },
+          { src: "/work/mylife/dark-mode.webp", alt: "MyLife landing page in dark mode", kind: "desktop", caption: "Dark mode" },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "webkeun-templates",
+    index: "04",
     title: "Webkeun Business Templates",
     client: "Webkeun.id — templates for small businesses",
     year: "2026",

@@ -64,8 +64,8 @@ export const experience: readonly Experience[] = [
     period: "Oct 2026 — Now",
     type: "Own business · Bandung",
     points: [
-      "Started a web studio for digital wedding invitations, small-business sites, company profiles and portfolios.",
-      "Launched an invitation product with 11 themes and 3 pricing packages; handle consultation, build, domain, hosting and launch for each client.",
+      "Founded a web development service for digital wedding invitations, small-business sites, company profiles and personal portfolios.",
+      "Launched a digital invitation product with 11 themes and 3 pricing packages; manage client consultation, development, domain setup, hosting and launch.",
     ],
     stack: ["Next.js", "TypeScript", "Supabase", "Tailwind CSS", "Vercel"],
   },
@@ -75,9 +75,9 @@ export const experience: readonly Experience[] = [
     period: "Jan — Jul 2026",
     type: "Internship · Marine conservation NGO",
     points: [
-      "Built the public site and the admin dashboard for events, volunteers, coupons and payment verification.",
-      "Built the REST API and PostgreSQL schema behind volunteer enrollment: auth, document upload, payment proof, approval, search and pagination.",
-      "Worked in Git branches with the team; tested endpoints in Postman.",
+      "Developed a React and Tailwind CSS website and admin dashboard for events, volunteers, coupons and payment verification; the platform is awaiting launch.",
+      "Built an Express.js REST API with Sequelize and PostgreSQL for enrollment, JWT authentication, document uploads, payment review, search and pagination.",
+      "Tested endpoints in Postman and collaborated with the team through Git branches.",
     ],
     stack: ["React", "Vite", "Tailwind CSS", "Express", "Sequelize", "PostgreSQL", "JWT"],
     certificate: certificates.oygInternship,
