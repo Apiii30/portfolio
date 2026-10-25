@@ -32,9 +32,16 @@ export function ExperienceSection() {
 
           <Reveal delay={0.1} className="mt-10 rounded-[28px] bg-surface p-6 ring-1 ring-line">
             <p className="text-[0.8rem] font-medium text-ink-faint">Education</p>
-            <p className="mt-3 text-lg">{education.school}</p>
-            <p className="text-ink-soft">{education.degree}</p>
-            <p className="mt-1 font-mono text-xs text-ink-faint">{education.period}</p>
+            <ul className="divide-y divide-line">
+              {education.map((e) => (
+                <li key={e.school} className="py-4 last:pb-0">
+                  <p className="text-lg">{e.school}</p>
+                  <p className="text-ink-soft">{e.degree}</p>
+                  {e.note && <p className="mt-2 inline-flex rounded-full bg-accent-soft px-2.5 py-1 text-[0.8rem] font-medium text-accent">{e.note}</p>}
+                  <p className="mt-1.5 font-mono text-xs text-ink-faint">{e.period}</p>
+                </li>
+              ))}
+            </ul>
           </Reveal>
 
         </div>

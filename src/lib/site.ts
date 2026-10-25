@@ -9,7 +9,7 @@ export const site = {
   availability: "Available now",
   workMode: "Remote, or on-site anywhere",
   webkeunWhatsapp: "https://wa.me/6285110513756?text=Halo%20Webkeun%2C%20aku%20mau%20tanya%20soal%20website%20atau%20undangan%20digital.",
-  email: "asmarhafidz81@gmail.com",
+  email: "asmarhafidzmei@gmail.com",
   whatsapp: "https://wa.me/6283125043525",
   github: "https://github.com/Apiii30",
   linkedin: "https://www.linkedin.com/in/hafidz-asmar-meisanda/",

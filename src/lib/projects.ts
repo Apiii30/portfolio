@@ -50,6 +50,14 @@ export const projects: readonly Project[] = [
       { value: "3", label: "packages, Rp99k to Rp349k" },
       { value: "xlsx", label: "guest list import, then links sent over WhatsApp" },
     ],
+    outcome: {
+      title: "Where it is now",
+      points: [
+        "The first 2 paying clients came in within the first month of launch.",
+        "Invitations are delivered in 3–5 days, websites in 5–10 days.",
+        "With the five business templates, the catalogue is at 16 themes.",
+      ],
+    },
     live: { label: "Browse the themes", href: "https://webkeun.id/template/undangan" },
     cover: {
       src: "/work/webkeun-invitation/theme-pranata-jawa.webp",
@@ -104,13 +112,13 @@ export const projects: readonly Project[] = [
     title: "Ocean Young Guards",
     client: "Ocean Young Guards — marine conservation NGO",
     year: "Jan — Jul 2026",
-    role: "Full-stack developer intern",
+    role: "Full-stack developer intern · 2-person team, remote",
     summary:
       "A volunteer platform for a marine conservation NGO, from browsing an event to an issued certificate, with an admin side that verifies every payment.",
     hook: "From \"I want to join\" to a certificate, without a single Google Form.",
     stack: ["React", "Vite", "Tailwind CSS", "Express", "Sequelize", "PostgreSQL", "JWT"],
     facts: [
-      { value: "2", label: "sides built: volunteer and admin" },
+      { value: "8", label: "REST endpoints for enrollment and payment review" },
       { value: "5", label: "steps from sign-up to certificate" },
       { value: "6", label: "admin modules, from events to user management" },
     ],
@@ -143,7 +151,7 @@ export const projects: readonly Project[] = [
       },
       {
         title: "The admin's side",
-        body: "Admins manage events, coupons, enrollments and users. Payment proofs land in a review table with bulk approve and export, and the volunteer sees the result on their own dashboard. Behind it: an Express REST API with JWT auth, Sequelize models on PostgreSQL, file uploads, search and pagination.",
+        body: "Admins manage events, coupons, enrollments and users. Payment proofs land in a review table with bulk approve and export, and the volunteer sees the result on their own dashboard. Behind it: an Express REST API of 8 endpoints with JWT auth, Sequelize models on PostgreSQL, file uploads, search and pagination.",
         shots: [
           { src: "/work/oyg/payment-verification.webp", alt: "Admin payment verification table with view proof, approve and reject actions", kind: "desktop", caption: "Payment verification" },
         ],
@@ -169,7 +177,7 @@ export const projects: readonly Project[] = [
     summary:
       "One account for the parts of a student's life that usually live in separate apps: money, tasks, calendar, journal, memories, goals and grades. In Bahasa Indonesia or English, light or dark.",
     hook: "Money, tasks, memories and GPA in one calm space, and they work together.",
-    stack: ["Next.js", "Express"],
+    stack: ["Next.js", "TypeScript", "Express", "Prisma", "PostgreSQL (Neon)", "NextAuth.js", "Tailwind CSS", "Cloudinary"],
     facts: [
       { value: "7", label: "modules: finance, to-do, calendar, journal, memories, goals, grades" },
       { value: "2", label: "languages, switchable anytime: Bahasa Indonesia and English" },
@@ -195,6 +203,10 @@ export const projects: readonly Project[] = [
         title: "Goals that are tied to the rest",
         body: "A financial goal fills up as you save, and each saving is recorded in Finance automatically. A life goal, like graduating, breaks into steps you tick off one by one, with the progress shown as you go.",
         shots: [{ src: "/work/mylife/goals.webp", alt: "Goals section: a MacBook savings goal at 68% and a graduation goal broken into steps", kind: "desktop", caption: "Goals" }],
+      },
+      {
+        title: "A locked-down API, and charts drawn by hand",
+        body: "The Next.js front end talks to an Express REST API secured with JWT, bcrypt-hashed passwords, Zod validation, Helmet, CORS and rate limiting. Data lives in PostgreSQL on Neon through Prisma, sign-in runs on NextAuth.js and images are stored on Cloudinary. Every chart in the app is drawn from scratch in SVG, without a chart library.",
       },
       {
         title: "Indonesian or English, light or dark",

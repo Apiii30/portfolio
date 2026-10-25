@@ -66,6 +66,8 @@ export const experience: readonly Experience[] = [
     points: [
       "Founded a web development service for digital wedding invitations, small-business sites, company profiles and personal portfolios.",
       "Launched a digital invitation product with 11 themes and 3 pricing packages; manage client consultation, development, domain setup, hosting and launch.",
+      "Developed 5 business website templates for rental, coffee, logistics, photography and laundry businesses, bringing the catalogue to 16 themes.",
+      "Secured the first 2 paying clients within the first month of launch, delivering invitations in 3–5 days and websites in 5–10 days.",
     ],
     stack: ["Next.js", "TypeScript", "Supabase", "Tailwind CSS", "Vercel"],
   },
@@ -73,11 +75,12 @@ export const experience: readonly Experience[] = [
     role: "Full-stack Developer Intern",
     org: "Ocean Young Guards",
     period: "Jan — Jul 2026",
-    type: "Internship · Marine conservation NGO",
+    type: "Internship · Remote, full-time · Marine conservation NGO",
     points: [
       "Developed a React and Tailwind CSS website and admin dashboard for events, volunteers, coupons and payment verification; the platform is awaiting launch.",
-      "Built an Express.js REST API with Sequelize and PostgreSQL for enrollment, JWT authentication, document uploads, payment review, search and pagination.",
-      "Tested endpoints in Postman and collaborated with the team through Git branches.",
+      "Built an Express.js REST API with 8 endpoints using Sequelize and PostgreSQL for enrollment and payment review.",
+      "Implemented JWT authentication, document uploads, search and pagination for the admin and user flows.",
+      "Tested endpoints in Postman and collaborated with another developer in a 2-person team through Git branches.",
     ],
     stack: ["React", "Vite", "Tailwind CSS", "Express", "Sequelize", "PostgreSQL", "JWT"],
     certificate: certificates.oygInternship,
@@ -87,12 +90,20 @@ export const experience: readonly Experience[] = [
     org: "HIMAMI — Informatics Management Student Association",
     period: "2024 — Now",
     type: "Organisation",
-    points: ["Lead Instagram content design and activity updates; built and maintain the association's website."],
+    points: [
+      "Lead Instagram content design and activity updates for the association.",
+      "Designed and built the association's official website from scratch in HTML, CSS and JavaScript, with board member profiles, an event agenda and a photo gallery.",
+    ],
+    stack: ["HTML", "CSS", "JavaScript"],
   },
 ];
 
-export const education = {
-  school: "Politeknik Praktisi Bandung",
-  degree: "D3 Informatics Management",
-  period: "Sep 2024 — 2027 (expected)",
-} as const;
+export const education: readonly { school: string; degree: string; period: string; note?: string }[] = [
+  {
+    school: "Politeknik Praktisi Bandung",
+    degree: "D3 Informatics Management",
+    period: "Sep 2024 — 2027 (expected)",
+    note: "GPA 3.84 / 4.00 (current)",
+  },
+  { school: "SMAN 10 Bandung", degree: "Science (IPA)", period: "2021 — 2024" },
+];

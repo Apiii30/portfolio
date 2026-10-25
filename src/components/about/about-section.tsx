@@ -43,8 +43,8 @@ export function AboutSection() {
             />
             <div className="mt-7 grid gap-5 leading-relaxed text-ink-soft md:grid-cols-2">
               <p>
-                I study Informatics Management at Politeknik Praktisi Bandung (D3, graduating 2027). At Ocean Young
-                Guards I built a volunteer platform end to end: the API, the database, the admin screens.
+                I study Informatics Management at Politeknik Praktisi Bandung (D3, graduating 2027) and hold a 3.84 GPA.
+                At Ocean Young Guards I built a volunteer platform end to end: the API, the database, the admin screens.
               </p>
               <p>
                 <a href={site.webkeun} className="text-ink underline decoration-accent underline-offset-4">
